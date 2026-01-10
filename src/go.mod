@@ -1,4 +1,4 @@
-module github.com/jfgavin/TMT-2
+module github.com/jfgavin/TMT-2/src
 
 go 1.23.3
 

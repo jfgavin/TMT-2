@@ -1,6 +1,6 @@
 package main
 
-import gameServer "github.com/jfgavin/TMT-2/server"
+import gameServer "github.com/jfgavin/TMT-2/src/server"
 
 // "go run ."
 func main() {
