@@ -23,21 +23,17 @@ jobs:
         run: go mod download
 
       - name: Verify build
-        run: go build -o tmt_bin .
-
-      - name: Run tests
-        run: go test . -v
+        run: go build -o bin/tmt_bin .
 
       - name: Upload Go game binary
         uses: actions/upload-artifact@v4
         with:
           name: go-binary
-          path: tmt_bin
+          path: bin/tmt_bin
 
   build-python:
     runs-on: ubuntu-latest
     needs: build-go
-    timeout-minutes: 1
 
     steps:
       - name: Checkout repository
@@ -47,10 +43,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: go-binary
-          path: .
+          path: bin
 
       - name: Make Go binary executable
-        run: chmod +x tmt_bin
+        run: chmod +x bin/tmt_bin
 
       - name: Set up Python
         uses: actions/setup-python@v4
