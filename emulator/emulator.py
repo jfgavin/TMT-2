@@ -30,25 +30,6 @@ button_font = pygame.font.SysFont("monospace", 18, bold=True)
 sidebar_font = pygame.font.SysFont("monospace", 16)
 
 # ---------------------------
-# Load assets
-# ---------------------------
-ASSETS_DIR = Path("pygame_assets") / "textures"
-TILE_IMAGES = {}
-HERO_IMAGES = {}
-
-def load_scaled_image(path, size):
-    img = pygame.image.load(path).convert_alpha()
-    return pygame.transform.scale(img, size)
-
-# Tile textures
-for name in ["floor"]:
-    TILE_IMAGES[name] = load_scaled_image(ASSETS_DIR / f"{name}.png", (CELL_SIZE, CELL_SIZE))
-
-
-# Easy-access floor image
-floor_image = TILE_IMAGES["floor"]
-
-# ---------------------------
 # Socket listener setup
 # ---------------------------
 HOST = "127.0.0.1"
@@ -160,10 +141,9 @@ while running:
     for y, row in enumerate(grid):
         for x, tile in enumerate(row):
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            pos = (x * CELL_SIZE, y * CELL_SIZE)
-
+            
             # --- Base floor ---
-            screen.blit(floor_image, pos)
+            pygame.draw.rect(screen, (255, 255, 255), rect)
 
             # --- Tile border ---
             pygame.draw.rect(screen, (50, 50, 50), rect, 1)
