@@ -59,7 +59,7 @@ sock.bind((HOST, PORT))
 sock.listen(1)
 print(f"Listening on {HOST}:{PORT} ...")
 
-go_proc = subprocess.Popen(["../src/tmt_bin"])
+go_proc = subprocess.Popen(["../bin/tmt_bin"])
 
 conn, addr = sock.accept()
 
@@ -90,7 +90,6 @@ if states:
     firstState = states[0]
     if "Grid" in firstState:
         firstGrid = firstState.get("Grid", [])[0]
-    if firstGrid:
         GRID_SIZE = len(firstGrid)
         SCREEN_SIZE = GRID_SIZE * CELL_SIZE
         screen = pygame.display.set_mode((SCREEN_SIZE + SIDEBAR_SIZE, SCREEN_SIZE))
@@ -154,7 +153,7 @@ while running:
     selected_hero = None
 
     # Choose which board to render: new API provides `layers` (list of boards)
-    board = None
+    grid = None
     if "Grid" in state:
         grid = state.get("Grid", [])
 
@@ -181,9 +180,10 @@ while running:
     sidebar_x = SCREEN_SIZE + SIDEBAR_PADDING
     sidebar_y = SIDEBAR_PADDING
     sidebar_lines = [
-        f"Iteration: {state.get("Iteration", "?")}",
-        f"Turn: {state.get("Turn", "?")}",
+        f"Iteration: {state.get('Iteration', '?')}",
+        f"Turn: {state.get('Turn', '?')}",
     ]
+
     for idx, text in enumerate(sidebar_lines):
         rendered = sidebar_font.render(text, True, (255, 255, 255))
         screen.blit(rendered, (sidebar_x, sidebar_y + idx * SIDEBAR_PADDING))
