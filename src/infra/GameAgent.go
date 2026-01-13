@@ -7,7 +7,7 @@ import (
 type GameAgent struct {
 	*agent.BaseAgent[IGameAgent]
 	Name   string
-	Pos    Position
+	Tile   *Tile
 	Energy int
 }
 
@@ -15,12 +15,12 @@ func (bga *GameAgent) DoMessaging() {
 	bga.SignalMessagingComplete()
 }
 
-func (bga *GameAgent) GetPos() Position {
-	return bga.Pos
+func (bga *GameAgent) GetTile() *Tile {
+	return bga.Tile
 }
 
-func (bga *GameAgent) SetPos(pos Position) {
-	bga.Pos = pos
+func (bga *GameAgent) SetTile(tile *Tile) {
+	bga.Tile = tile
 }
 
 func (bga *GameAgent) GetEnergy() int {
@@ -31,11 +31,11 @@ func (bga *GameAgent) SetEnergy(energy int) {
 	bga.Energy = energy
 }
 
-func NewGameAgent(funcs agent.IExposedServerFunctions[IGameAgent], name string, pos Position) *GameAgent {
+func NewGameAgent(funcs agent.IExposedServerFunctions[IGameAgent], name string, tile *Tile) *GameAgent {
 	return &GameAgent{
 		BaseAgent: agent.CreateBaseAgent(funcs),
 		Name:      name,
-		Pos:       pos,
+		Tile:      tile,
 		Energy:    StartingEnergy,
 	}
 }

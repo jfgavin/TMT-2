@@ -8,11 +8,11 @@ type IGameAgent interface {
 
 	DoMessaging()
 
+	GetName() string
+
 	GetPos() Position
 
 	SetPos(pos Position)
-
-	GetName() string
 
 	GetEnergy() int
 
