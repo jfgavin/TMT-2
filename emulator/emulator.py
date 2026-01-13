@@ -17,7 +17,7 @@ CI_MODE = os.environ.get("CI", "false").lower() == "true"
 # ---------------------------
 pygame.init()
 GRID_SIZE = 12
-CELL_SIZE = 60
+CELL_SIZE = 12
 SIDEBAR_SIZE = 220
 SIDEBAR_PADDING = 16
 SCREEN_SIZE = GRID_SIZE * CELL_SIZE
@@ -40,7 +40,14 @@ sock.bind((HOST, PORT))
 sock.listen(1)
 print(f"Listening on {HOST}:{PORT} ...")
 
-go_proc = subprocess.Popen(["../bin/tmt_bin"])
+bin_path = Path.cwd().parent / Path("bin/tmt_bin")
+print(bin_path)
+
+if not bin_path.exists():
+    print("Binary not found! Please build Go binary first...")
+    exit(0)
+
+go_proc = subprocess.Popen([str(bin_path)])
 
 conn, addr = sock.accept()
 
@@ -74,28 +81,6 @@ if states:
         GRID_SIZE = len(firstGrid)
         SCREEN_SIZE = GRID_SIZE * CELL_SIZE
         screen = pygame.display.set_mode((SCREEN_SIZE + SIDEBAR_SIZE, SCREEN_SIZE))
-
-# ---------------------------
-# Helper functions
-# ---------------------------
-def draw_arrow(rect, direction="left", color=(255, 153, 0)):
-    x, y, w, h = rect
-    if direction == "left":
-        points = [(x + w, y), (x + w, y + h), (x, y + h / 2)]
-    elif direction == "right":
-        points = [(x, y), (x, y + h), (x + w, y + h / 2)]
-    elif direction == "up":
-        points = [(x + w / 2, y), (x, y + h), (x + w, y + h)]
-    elif direction == "down":
-        points = [(x, y), (x + w, y), (x + w / 2, y + h)]
-    else:
-        # default to right if unknown
-        points = [(x, y), (x, y + h), (x + w, y + h / 2)]
-    pygame.draw.polygon(screen, color, points)
-
-def arrow_clicked(rect, mouse_pos):
-    x, y, w, h = rect
-    return x <= mouse_pos[0] <= x + w and y <= mouse_pos[1] <= y + h
 
 # ---------------------------
 # Main display loop
@@ -133,7 +118,6 @@ while running:
     screen.fill((77, 77, 77))
     selected_hero = None
 
-    # Choose which board to render: new API provides `layers` (list of boards)
     grid = None
     if "Grid" in state:
         grid = state.get("Grid", [])
@@ -147,14 +131,6 @@ while running:
 
             # --- Tile border ---
             pygame.draw.rect(screen, (50, 50, 50), rect, 1)
-
-
-    # Game State Arrows
-    arrow_w, arrow_h = 40, 40
-    left_rect = (SCREEN_SIZE + SIDEBAR_SIZE / 2 - arrow_w - ARROW_PADDING, SCREEN_SIZE - arrow_h - ARROW_PADDING, arrow_w, arrow_h)
-    right_rect = (SCREEN_SIZE + SIDEBAR_SIZE / 2 + ARROW_PADDING, SCREEN_SIZE - arrow_h - ARROW_PADDING, arrow_w, arrow_h)
-    draw_arrow(left_rect, "left")
-    draw_arrow(right_rect, "right")
 
     # Sidebar
     sidebar_x = SCREEN_SIZE + SIDEBAR_PADDING
