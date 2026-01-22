@@ -31,11 +31,11 @@ func (bga *GameAgent) SetEnergy(energy int) {
 	bga.Energy = energy
 }
 
-func NewGameAgent(funcs agent.IExposedServerFunctions[IGameAgent], name string, tile *Tile) *GameAgent {
+func NewGameAgent(funcs agent.IExposedServerFunctions[IGameAgent], name string, tile *Tile, energy int) *GameAgent {
 	return &GameAgent{
 		BaseAgent: agent.CreateBaseAgent(funcs),
 		Name:      name,
 		Tile:      tile,
-		Energy:    StartingEnergy,
+		Energy:    energy,
 	}
 }

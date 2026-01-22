@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/server"
+	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/infra"
 )
 
@@ -14,6 +15,7 @@ type GameServer struct {
 	*server.BaseServer[infra.IGameAgent]
 	Env  *infra.Environment
 	Conn net.Conn
+	cfg  config.Config
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
@@ -22,7 +24,7 @@ func (serv *GameServer) RunTurn(i, j int) {
 
 func (serv *GameServer) RunStartOfIteration(int) {
 	for _, ag := range serv.GetAgentMap() {
-		ag.SetEnergy(infra.StartingEnergy)
+		ag.SetEnergy(serv.cfg.StartingEnergy)
 	}
 }
 
@@ -56,22 +58,19 @@ func (serv *GameServer) CloseSocket() {
 	}
 }
 
-// override start
 func (serv *GameServer) Start() {
-	// steal method from package...
 	serv.BaseServer.Start()
 
-	// ...and add some more functionality for after the game
+	// Post-game functionality can go here
 	fmt.Println("Game Over!")
 	serv.CloseSocket()
 }
 
-// constructor for GameServer
-func MakeGameServer(iterations, turns int) *GameServer {
-	// embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+func NewGameServer(serverConfig config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer: server.CreateBaseServer[infra.IGameAgent](iterations, turns, 10*time.Millisecond, 100),
-		Env:        infra.NewEnvironment(),
+		BaseServer: server.CreateBaseServer[infra.IGameAgent](serverConfig.Iterations, serverConfig.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:        infra.NewEnvironment(serverConfig.GridSize),
+		cfg:        serverConfig,
 	}
 
 	// set GameRunner to bind RunTurn to BaseServer
