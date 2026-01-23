@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/infra"
 )
 
@@ -11,6 +12,7 @@ type GameState struct {
 	Iteration int
 	Turn      int
 	Grid      [][]*infra.Tile
+	Agents    map[uuid.UUID]infra.ITMTAgent
 }
 
 func BuildGameState(serv *GameServer, iteration, turn int) GameState {
@@ -18,6 +20,7 @@ func BuildGameState(serv *GameServer, iteration, turn int) GameState {
 		Iteration: iteration,
 		Turn:      turn,
 		Grid:      serv.Env.Grid,
+		Agents:    serv.GetAgentMap(),
 	}
 }
 

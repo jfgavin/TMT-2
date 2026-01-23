@@ -1,19 +1,37 @@
 package config
 
 type Config struct {
-	Iterations     int
-	Turns          int
-	NumAgents      int
+	Serv  ServerConfig
+	Agent AgentConfig
+	Env   EnvironmentConfig
+}
+
+type ServerConfig struct {
+	Iterations int
+	Turns      int
+	NumAgents  int
+}
+
+type AgentConfig struct {
 	StartingEnergy int
-	GridSize       int
+}
+
+type EnvironmentConfig struct {
+	GridSize int
 }
 
 func NewConfig() Config {
 	return Config{
-		Iterations:     2,
-		Turns:          5,
-		NumAgents:      4,
-		StartingEnergy: 5,
-		GridSize:       32,
+		Serv: ServerConfig{
+			Iterations: 2,
+			Turns:      5,
+			NumAgents:  4,
+		},
+		Agent: AgentConfig{
+			StartingEnergy: 5,
+		},
+		Env: EnvironmentConfig{
+			GridSize: 64,
+		},
 	}
 }

@@ -2,9 +2,9 @@ package infra
 
 import "github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
 
-type IGameAgent interface {
+type ITMTAgent interface {
 	// embed functionality from package
-	agent.IAgent[IGameAgent]
+	agent.IAgent[ITMTAgent]
 
 	DoMessaging()
 
@@ -17,4 +17,6 @@ type IGameAgent interface {
 	GetEnergy() int
 
 	SetEnergy(energy int)
+
+	ResetEnergy()
 }

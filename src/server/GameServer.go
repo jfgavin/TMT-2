@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"time"
@@ -12,19 +13,28 @@ import (
 )
 
 type GameServer struct {
-	*server.BaseServer[infra.IGameAgent]
+	*server.BaseServer[infra.ITMTAgent]
+	cfg  config.ServerConfig
 	Env  *infra.Environment
 	Conn net.Conn
-	cfg  config.Config
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
+	for _, ag := range serv.GetAgentMap() {
+
+		pos := ag.GetPos()
+
+		pos.X = pos.X + (-1 + rand.Intn(3))
+		pos.Y = pos.Y + (-1 + rand.Intn(3))
+
+		ag.SetPos(pos)
+	}
 	StreamGameIteration(serv, i, j)
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
 	for _, ag := range serv.GetAgentMap() {
-		ag.SetEnergy(serv.cfg.StartingEnergy)
+		ag.ResetEnergy()
 	}
 }
 
@@ -66,11 +76,18 @@ func (serv *GameServer) Start() {
 	serv.CloseSocket()
 }
 
-func NewGameServer(serverConfig config.Config) *GameServer {
+func NewGameServer(cfg config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer: server.CreateBaseServer[infra.IGameAgent](serverConfig.Iterations, serverConfig.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
-		Env:        infra.NewEnvironment(serverConfig.GridSize),
-		cfg:        serverConfig,
+		BaseServer: server.CreateBaseServer[infra.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:        infra.NewEnvironment(cfg.Env),
+		cfg:        cfg.Serv,
+	}
+
+	for i := 0; i < cfg.Serv.NumAgents; i++ {
+		pos := infra.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
+
+		ga := infra.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
+		serv.AddAgent(ga)
 	}
 
 	// set GameRunner to bind RunTurn to BaseServer

@@ -122,6 +122,8 @@ while running:
     if "Grid" in state:
         grid = state.get("Grid", [])
 
+    
+
     for y, row in enumerate(grid):
         for x, tile in enumerate(row):
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
@@ -131,6 +133,18 @@ while running:
 
             # --- Tile border ---
             pygame.draw.rect(screen, (50, 50, 50), rect, 1)
+
+    if "Agents" in state:
+        agents = state.get("Agents", [])
+        for uuid, agent in agents.items():
+            pos = agent["Pos"]
+
+            x = pos["X"] * CELL_SIZE + CELL_SIZE / 2
+            y = pos["Y"] * CELL_SIZE + CELL_SIZE / 2
+            
+            coord = (x, y)
+
+            pygame.draw.circle(screen, (255, 0, 0), coord, CELL_SIZE / 2)
 
     # Sidebar
     sidebar_x = SCREEN_SIZE + SIDEBAR_PADDING
