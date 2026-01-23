@@ -36,6 +36,7 @@ func (serv *GameServer) RunStartOfIteration(int) {
 	for _, ag := range serv.GetAgentMap() {
 		ag.ResetEnergy()
 	}
+	serv.Env.IntroduceResources(1000, 3)
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {

@@ -1,20 +1,15 @@
 package infra
 
-import "github.com/jfgavin/TMT-2/src/config"
+import (
+	"math"
+	"math/rand"
+
+	"github.com/jfgavin/TMT-2/src/config"
+)
 
 // === Subtypes ===
 type Position struct {
 	X, Y int
-}
-
-type Tile struct {
-	Resources int
-}
-
-func NewTile(resources int) *Tile {
-	return &Tile{
-		Resources: resources,
-	}
 }
 
 // === Environment Type ===
@@ -65,6 +60,13 @@ func (env *Environment) GetTile(pos Position) (*Tile, bool) {
 	return nil, false
 }
 
+func (env *Environment) GetRandPos() Position {
+	return Position{
+		X: rand.Intn(env.cfg.GridSize),
+		Y: rand.Intn(env.cfg.GridSize),
+	}
+}
+
 func (env *Environment) BoundPos(pos Position) Position {
 	upperBound := env.cfg.GridSize - 1
 
@@ -81,4 +83,51 @@ func (env *Environment) BoundPos(pos Position) Position {
 	}
 
 	return pos
+}
+
+func (env *Environment) IntroduceResources(resourceCount, clusterCount int) {
+	const radius = 5 // Controls size of clusters
+	const lambda = 3 // Controls distribution of resources between centre vs radius
+	maxTerm := 1 - math.Exp(-radius/lambda)
+
+	// Find cluster centres
+	centres := make([]Position, clusterCount)
+	for i := 0; i < clusterCount; i++ {
+		centres[i] = env.GetRandPos()
+	}
+
+	// Randomly place resources, one-by-one
+
+	for resourceCount > 0 {
+		chosenCentre := centres[rand.Intn(clusterCount)]
+
+		// Random angle
+		theta := rand.Float64() * 2 * math.Pi
+
+		// Random distance from centre
+		u := rand.Float64()
+		dist := -lambda * math.Log(1-u*maxTerm)
+
+		// Clamping
+		if dist > radius {
+			dist = radius
+		}
+
+		// Final position of new resource
+		x := float64(chosenCentre.X) + dist*math.Cos(theta)
+		y := float64(chosenCentre.Y) + dist*math.Sin(theta)
+
+		newPos := Position{
+			X: int(math.Round(x)),
+			Y: int(math.Round(y)),
+		}
+
+		// Modify tile
+		tile, found := env.GetTile(newPos)
+
+		if found {
+			tile.AddResources(1)
+			resourceCount--
+		}
+	}
 }

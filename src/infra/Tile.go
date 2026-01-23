@@ -1,0 +1,15 @@
+package infra
+
+type Tile struct {
+	Resources int
+}
+
+func NewTile(resources int) *Tile {
+	return &Tile{
+		Resources: resources,
+	}
+}
+
+func (tile *Tile) AddResources(resources int) {
+	tile.Resources += resources
+}
