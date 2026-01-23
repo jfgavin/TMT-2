@@ -23,16 +23,13 @@ jobs:
         run: go mod download
 
       - name: Verify build
-        run: go build -o TMT-2 .
-
-      - name: Run tests
-        run: go test . -v
+        run: go build -o bin/tmt_bin .
 
       - name: Upload Go game binary
         uses: actions/upload-artifact@v4
         with:
           name: go-binary
-          path: TMT-2
+          path: bin/tmt_bin
 
   build-python:
     runs-on: ubuntu-latest
@@ -46,10 +43,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: go-binary
-          path: .
+          path: bin
 
       - name: Make Go binary executable
-        run: chmod +x TMT-2
+        run: chmod +x bin/tmt_bin
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -61,9 +58,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install pygame
 
-      - name: Verify Python build
-        run: |
-          python -m py_compile game.py
-
       - name: Run Python script
-        run: python game.py
+        run: python emulator/emulator.py

@@ -1,11 +1,15 @@
 package main
 
-import gameServer "github.com/jfgavin/TMT-2/server"
+import (
+	"github.com/jfgavin/TMT-2/src/config"
+	gameServer "github.com/jfgavin/TMT-2/src/server"
+)
 
 // "go run ."
 func main() {
+	cfg := config.NewConfig()
 	// create server from constructor
-	serv := gameServer.MakeGameServer(2, 5)
+	serv := gameServer.NewGameServer(cfg)
 	// toggle verbose logging of messaging stats
 	serv.ReportMessagingDiagnostics()
 	// begin simulator
