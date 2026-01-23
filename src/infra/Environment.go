@@ -67,6 +67,13 @@ func (env *Environment) GetRandPos() Position {
 	}
 }
 
+func (env *Environment) GetRandPosPadded(padding int) Position {
+	return Position{
+		X: rand.Intn(env.cfg.GridSize-padding) + padding,
+		Y: rand.Intn(env.cfg.GridSize-padding) + padding,
+	}
+}
+
 func (env *Environment) BoundPos(pos Position) Position {
 	upperBound := env.cfg.GridSize - 1
 
@@ -91,9 +98,10 @@ func (env *Environment) IntroduceResources(resourceCount, clusterCount int) {
 	maxTerm := 1 - math.Exp(-radius/lambda)
 
 	// Find cluster centres
+	// Ensure their most extreme points are not outside of the grid
 	centres := make([]Position, clusterCount)
 	for i := 0; i < clusterCount; i++ {
-		centres[i] = env.GetRandPos()
+		centres[i] = env.GetRandPosPadded(radius)
 	}
 
 	// Randomly place resources, one-by-one
@@ -117,10 +125,10 @@ func (env *Environment) IntroduceResources(resourceCount, clusterCount int) {
 		x := float64(chosenCentre.X) + dist*math.Cos(theta)
 		y := float64(chosenCentre.Y) + dist*math.Sin(theta)
 
-		newPos := Position{
+		newPos := env.BoundPos(Position{
 			X: int(math.Round(x)),
 			Y: int(math.Round(y)),
-		}
+		})
 
 		// Modify tile
 		tile, found := env.GetTile(newPos)
