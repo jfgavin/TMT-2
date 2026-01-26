@@ -1,67 +1,87 @@
 import dearpygui.dearpygui as dpg
+import numpy as np
 
 class TMTGrid:
     def __init__(self, parent, initState):
 
         self.parent = parent
-        self.cell_ids = []
 
-        # Drawlist size will be set dynamically
-        parent_width = dpg.get_item_width(parent)
-        parent_height = dpg.get_item_height(parent)
+        # Canvas size
+        canvas_width = dpg.get_item_width(parent)
+        canvas_height = dpg.get_item_height(parent)
 
-        self.drawlist_tag = "grid"
+        # Get grid
+        grid = initState.get("Grid", [])
+        self.GRID_SIZE = len(grid[0])
 
-        with dpg.drawlist(parent=parent, tag=self.drawlist_tag,
-                            width=parent_width, height=parent_height):
-            pass
+        # Texture data
+        self.texture_data = np.zeros((self.GRID_SIZE, self.GRID_SIZE, 4), dtype=np.float32)
 
-        # Draw initial grid
-        self.__draw_blank_grid(initState)
+        # Create texture registry and dynamic texture
+        with dpg.texture_registry(show=False):
+            self.texture_id = dpg.add_dynamic_texture(
+                width=self.GRID_SIZE,
+                height=self.GRID_SIZE,
+                default_value=self.texture_data
+            )
 
-    def __draw_blank_grid(self, state=None):
+        # Drawlist to show texture (also draw agents here)
+        self.drawlist_tag = "grid_drawlist"
+        with dpg.drawlist(parent=parent, width=canvas_width, height=canvas_height, tag=self.drawlist_tag):
+            dpg.draw_image(
+                self.texture_id,
+                pmin=(0, 0),
+                pmax=(canvas_width, canvas_height)
+            )
+
+        # Draw grid lines once
+        self._draw_grid_lines()
+
+
+        # Initialize texture
+        self.update_texture(grid)
+        
+
+    def _draw_grid_lines(self):
         canvas_width = dpg.get_item_width(self.drawlist_tag)
         canvas_height = dpg.get_item_height(self.drawlist_tag)
-        if canvas_width <= 0 or canvas_height <= 0:
-            return  # Skip drawing until valid
+        cell_width = canvas_width / self.GRID_SIZE
+        cell_height = canvas_height / self.GRID_SIZE
 
-        if state is not None and "Grid" in state:
+        # Vertical lines
+        for x in range(self.GRID_SIZE + 1):
+            dpg.draw_line(
+                (x * cell_width, 0),
+                (x * cell_width, canvas_height),
+                color=(0, 0, 0, 255),
+                parent=self.drawlist_tag
+            )
 
-            grid = state.get("Grid", [])
-            self.GRID_SIZE = len(grid[0])
+        # Horizontal lines
+        for y in range(self.GRID_SIZE + 1):
+            dpg.draw_line(
+                (0, y * cell_height),
+                (canvas_width, y * cell_height),
+                color=(0, 0, 0, 255),
+                parent=self.drawlist_tag
+            )
 
-            # Clear old rectangles
-            self.cell_ids.clear()
+    def update_texture(self, grid):
+        for y, row in enumerate(grid):
+            for x, cell in enumerate(row):
+                resources = cell.get("Resources", 0)
+                alpha = min(1.0, resources / 25)
+                self.texture_data[y, x] = [1.0, 1.0, 0.0, alpha]
 
-            # Draw Grid
-            cell_width = canvas_width / self.GRID_SIZE
-            cell_height = canvas_height / self.GRID_SIZE
-
-            # Colour Resources
-            for y, row in enumerate(grid):
-                row_ids = []
-                for x, cell in enumerate(row):
-                    x0 = x * cell_width
-                    y0 = y * cell_height
-                    x1 = x0 + cell_width
-                    y1 = y0 + cell_height
-
-                    resources = cell.get("Resources", 0)
-                    rgba = (255, 255, 0, resources * 10)
-
-                    cell_id = dpg.draw_rectangle(
-                        (x0, y0), (x1, y1),
-                        fill=(255, 255, 0, resources*10),
-                        parent=self.drawlist_tag
-                    )
-                    row_ids.append(cell_id)
-                self.cell_ids.append(row_ids)
-
-            
+        # Upload to DearPyGui
+        dpg.set_value(self.texture_id, self.texture_data)
 
     def update_grid(self, state=None):
         if state is None or "Grid" not in state:
             return
+
+        grid = state["Grid"]
+        self.update_texture(grid)
 
         canvas_width = dpg.get_item_width(self.drawlist_tag)
         canvas_height = dpg.get_item_height(self.drawlist_tag)
@@ -85,15 +105,3 @@ class TMTGrid:
                 parent=self.drawlist_tag,
                 tag=f"agent-{uuid}",
             )
-
-        # Update grid
-        grid = state["Grid"]
-        for y, row in enumerate(grid):
-            for x, cell in enumerate(row):
-                resources = cell.get("Resources", 0)
-                rgba = (255, 255, 0, resources*10)
-
-                # Update rectangle color without recreating it
-                dpg.configure_item(self.cell_ids[y][x], fill=rgba)
-
-        
