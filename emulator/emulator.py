@@ -37,7 +37,7 @@ class TMTEmulator():
                 border=False,
                 pos=[self.PADDING, self.PADDING]
             ) as simulation_window:
-                self.grid = TMTGrid(parent=simulation_window)
+                self.grid = TMTGrid(parent=simulation_window, initState=self.parser.get_state(self.INDEX))
 
             with dpg.child_window(label="Sidebar", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True):
                 with dpg.collapsing_header(label="Controls", default_open=True) as self.controls_panel:
@@ -54,10 +54,10 @@ class TMTEmulator():
         if new_index < 0 or new_index >= len(self.parser.states):
             return
 
-        self.index = new_index
+        self.INDEX = new_index
 
-        state = self.parser.get_state(self.index)
-        self.grid.draw_grid(state)
+        state = self.parser.get_state(self.INDEX)
+        self.grid.update_grid(state)
 
         dpg.set_value(
             "info_text",
