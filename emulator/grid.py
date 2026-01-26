@@ -6,6 +6,7 @@ class TMTGrid:
 
         self.parent = parent
         self.cell_ids = []
+        self.agents = []
 
         # Drawlist size will be set dynamically
         parent_width = dpg.get_item_width(parent)
@@ -75,6 +76,7 @@ class TMTGrid:
         cell_height = canvas_height / self.GRID_SIZE
 
         # Draw Agents
+        self.agents.clear()
         agents = state.get("Agents", {})
         for uuid, agent in agents.items():
             dpg.delete_item(f"agent-{uuid}")
@@ -83,7 +85,7 @@ class TMTGrid:
             agy = (pos["Y"] + 0.5) * cell_height
             radius = cell_width * 0.5
 
-            dpg.draw_circle(
+            agent_circle = dpg.draw_circle(
                 (agx, agy),
                 radius,
                 color=(255, 0, 0),
@@ -91,6 +93,8 @@ class TMTGrid:
                 parent=self.drawlist_tag,
                 tag=f"agent-{uuid}",
             )
+
+            self.agents.append(agent_circle)
 
         # Update grid
         grid = state["Grid"]
@@ -103,3 +107,12 @@ class TMTGrid:
                     dpg.configure_item(self.cell_ids[y][x], fill=rgba)
                     
                     self._cell_content[y][x] = copy.deepcopy(cell)
+
+    def colour_agent(self, uuid=None):
+        if uuid is None:
+            return
+
+        for agent in self.agents:
+            dpg.configure_item(agent, fill=(255, 0, 0))
+
+        dpg.configure_item(f"agent-{uuid}", fill=(0, 0, 255))

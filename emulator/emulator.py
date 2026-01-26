@@ -16,7 +16,11 @@ class TMTEmulator():
         self.CI_MODE = os.environ.get("CI", "false").lower() == "true"
 
         self.parser = TMTParser()
-        self.controls = TMTControls(index_change=self._on_index_change, mouse_move=self._on_mouse_move)
+        self.controls = TMTControls(
+            index_change=self._on_index_change,
+            mouse_move=self._on_mouse_move,
+            mouse_click=self._on_mouse_click,
+        )
 
         self.INDEX = 0
         self.GRID_SIZE = self.parser.get_grid_size()
@@ -97,10 +101,7 @@ class TMTEmulator():
         self.grid.update_grid(state)
         self.metrics.update_state_metrics(state)
 
-    def _on_mouse_move(self):
-        """
-            Passes the clicked grid-coordinate, else nothing
-        """
+    def _get_mouse_coord(self):
         mx, my = dpg.get_mouse_pos(local=False)
         sim_x, sim_y = dpg.get_item_pos("sim")
         sim_w = dpg.get_item_width("sim")
@@ -110,10 +111,34 @@ class TMTEmulator():
         corr_y = my - sim_y
 
         if  corr_x < 0 or corr_y < 0 or corr_x > sim_w or corr_y > sim_h:
-            coord = "(?, ?)"
-        else:
-            x = int((corr_x / sim_w) * self.GRID_SIZE)
-            y = int((corr_y / sim_h) * self.GRID_SIZE)
-            coord = (x, y)
+            return "(?, ?)", False
 
+        x = int((corr_x / sim_w) * self.GRID_SIZE)
+        y = int((corr_y / sim_h) * self.GRID_SIZE)
+        return (x, y), True
+
+    def _on_mouse_move(self):
+        """
+            Passes the clicked grid-coordinate, else nothing
+        """
+        coord, _ = self._get_mouse_coord()
         self.metrics.update_coord(coord)
+
+    def _on_mouse_click(self):
+        coord, found = self._get_mouse_coord()
+        if not found:
+            return
+
+        x, y = coord
+
+        state = self.parser.get_state(self.INDEX)
+        agents = state.get("Agents", {})
+        for uuid, agent in agents.items():
+            pos = agent["Pos"]
+            if pos["X"] == x and pos["Y"] == y:
+                self.metrics.update_agent(uuid, agent)
+                self.grid.colour_agent(uuid)
+                return
+
+        
+
