@@ -39,7 +39,7 @@ class TMTEmulator():
             ) as simulation_window:
                 self.grid = TMTGrid(parent=simulation_window, initState=self.parser.get_state(self.INDEX))
 
-            with dpg.child_window(label="Sidebar", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True):
+            with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True):
                 with dpg.collapsing_header(label="Controls", default_open=True) as self.controls_panel:
                     self.controltext = dpg.add_text("This is where controls to view the simulation will be presented", wrap=300)
                 with dpg.collapsing_header(label="Info", default_open=True):
@@ -72,5 +72,22 @@ class TMTEmulator():
         dpg.set_viewport_title("TMT 2.0 Simulator")
         dpg.set_viewport_width(self.WINDOW_WIDTH)
         dpg.set_viewport_height(self.WINDOW_HEIGHT)
+        dpg.set_viewport_resize_callback(self.__on_viewport_resize)
 
-    
+
+    def __on_viewport_resize(self, sender, app_data):
+        new_width, new_height, _, _ = app_data
+
+        # Compute new simulation size based on viewport size
+        sim_size = min(new_height - 2*self.PADDING, new_width - self.SIDEBAR_WIDTH - 3*self.PADDING)
+
+        # Resize simulation child window
+        dpg.configure_item("sim", width=sim_size, height=sim_size)
+
+        # Move sidebar to the new position
+        dpg.configure_item("side", pos=[sim_size + 2*self.PADDING, self.PADDING])
+
+        dpg.configure_item(self.grid.drawlist_tag, width=sim_size, height=sim_size)
+        state = self.parser.get_state(self.INDEX)
+        self.grid.draw_blank_grid(state)
+        self.grid.update_grid(state)

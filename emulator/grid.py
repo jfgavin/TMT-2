@@ -18,9 +18,9 @@ class TMTGrid:
             pass
 
         # Draw initial grid
-        self.__draw_blank_grid(initState)
+        self.draw_blank_grid(initState)
 
-    def __draw_blank_grid(self, state=None):
+    def draw_blank_grid(self, state=None):
         canvas_width = dpg.get_item_width(self.drawlist_tag)
         canvas_height = dpg.get_item_height(self.drawlist_tag)
         if canvas_width <= 0 or canvas_height <= 0:
@@ -35,6 +35,7 @@ class TMTGrid:
 
             # Clear old rectangles
             self.cell_ids.clear()
+            dpg.delete_item(self.drawlist_tag, children_only=True)
 
             # Draw Grid
             cell_width = canvas_width / self.GRID_SIZE
@@ -58,12 +59,11 @@ class TMTGrid:
                         (x0, y0), (x1, y1),
                         color=(0, 0, 0),
                         fill=(255, 255, 0, resources*10),
-                        parent=self.drawlist_tag
+                        parent=self.drawlist_tag,
+                        tag=f"cell-{x}-{y}",
                     )
                     row_ids.append(cell_id)
                 self.cell_ids.append(row_ids)
-
-            
 
     def update_grid(self, state=None):
         if state is None or "Grid" not in state:
