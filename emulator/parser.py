@@ -8,9 +8,9 @@ class TMTParser():
         self.HOST = "127.0.0.1"
         self.PORT = 5000
 
-        self.states = self.__parse_bin_json()
+        self.states = self._parse_bin_json()
 
-    def __parse_bin_json(self):
+    def _parse_bin_json(self):
                 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((self.HOST, self.PORT))
@@ -51,3 +51,8 @@ class TMTParser():
     def get_state(self, index=0):
         return self.states[index]
 
+    def get_grid_size(self):
+        init_state = self.states[0]
+
+        grid = init_state.get("Grid", [])
+        return len(grid[0])
