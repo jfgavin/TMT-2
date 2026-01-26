@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+import copy
 
 class TMTGrid:
     def __init__(self, parent, initState):
@@ -29,6 +30,8 @@ class TMTGrid:
 
             grid = state.get("Grid", [])
             self.GRID_SIZE = len(grid[0])
+            self._cell_content = [[{} for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
+
 
             # Clear old rectangles
             self.cell_ids.clear()
@@ -41,6 +44,8 @@ class TMTGrid:
             for y, row in enumerate(grid):
                 row_ids = []
                 for x, cell in enumerate(row):
+                    self._cell_content[y][x] = copy.deepcopy(cell)
+
                     x0 = x * cell_width
                     y0 = y * cell_height
                     x1 = x0 + cell_width
@@ -51,6 +56,7 @@ class TMTGrid:
 
                     cell_id = dpg.draw_rectangle(
                         (x0, y0), (x1, y1),
+                        color=(0, 0, 0),
                         fill=(255, 255, 0, resources*10),
                         parent=self.drawlist_tag
                     )
@@ -90,10 +96,10 @@ class TMTGrid:
         grid = state["Grid"]
         for y, row in enumerate(grid):
             for x, cell in enumerate(row):
-                resources = cell.get("Resources", 0)
-                rgba = (255, 255, 0, resources*10)
-
-                # Update rectangle color without recreating it
-                dpg.configure_item(self.cell_ids[y][x], fill=rgba)
-
-        
+                if cell != self._cell_content[y][x]:
+                    resources = cell.get("Resources", 0)
+                
+                    rgba = (255, 255, 0, resources*10)
+                    dpg.configure_item(self.cell_ids[y][x], fill=rgba)
+                    
+                    self._cell_content[y][x] = copy.deepcopy(cell)
