@@ -3,7 +3,7 @@ import os
 from grid import TMTGrid
 from parser import TMTParser
 from controls import TMTControls
-from metrics import TMTMetrics
+from sidebar import TMTSidebar
 
 class TMTEmulator():
     def __init__(self):
@@ -46,7 +46,7 @@ class TMTEmulator():
 
             with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True) as sidebar:
                 
-                self.metrics = TMTMetrics(parent=sidebar)
+                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation)
 
 
         dpg.set_primary_window(self.TMTWindow, True)
@@ -99,7 +99,7 @@ class TMTEmulator():
 
         state = self.parser.get_state(self.INDEX)
         self.grid.update_grid(state)
-        self.metrics.update_state_metrics(state)
+        self.sidebar.update_state_metrics(state)
 
     def _get_mouse_coord(self):
         mx, my = dpg.get_mouse_pos(local=False)
@@ -122,7 +122,7 @@ class TMTEmulator():
             Passes the clicked grid-coordinate, else nothing
         """
         coord, _ = self._get_mouse_coord()
-        self.metrics.update_coord(coord)
+        self.sidebar.update_coord(coord)
 
     def _on_mouse_click(self):
         coord, found = self._get_mouse_coord()
@@ -136,7 +136,7 @@ class TMTEmulator():
         for uuid, agent in agents.items():
             pos = agent["Pos"]
             if pos["X"] == x and pos["Y"] == y:
-                self.metrics.update_agent(uuid, agent)
+                self.sidebar.update_agent(uuid, agent)
                 self.grid.colour_agent(uuid)
                 return
 

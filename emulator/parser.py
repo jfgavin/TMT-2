@@ -2,6 +2,7 @@ import json
 import socket
 import subprocess
 from pathlib import Path
+from datetime import datetime
 
 class TMTParser():
     def __init__(self):
@@ -50,6 +51,14 @@ class TMTParser():
 
     def get_state(self, index=0):
         return self.states[index]
+
+    def save_simulation(self):
+        date = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"sim_{date}.json"
+
+        path = Path.cwd() / "saves" / filename
+        with open(path, "w") as f:
+            json.dump(self.states, f, indent=2)
 
     def get_grid_size(self):
         init_state = self.states[0]
