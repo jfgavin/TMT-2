@@ -1,1 +1,3 @@
-bin/
+bin
+emulator/saves
+**/__pycache__

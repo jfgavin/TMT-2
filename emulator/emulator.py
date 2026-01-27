@@ -1,182 +1,145 @@
-import argparse
-import json
-import socket
-import pygame
-import subprocess
+import dearpygui.dearpygui as dpg
 import os
-import sys
-from pathlib import Path
+from grid import TMTGrid
+from parser import TMTParser
+from controls import TMTControls
+from sidebar import TMTSidebar
 
-# ---------------------------
-# Assert CI mode
-# ---------------------------
-CI_MODE = os.environ.get("CI", "false").lower() == "true"
+class TMTEmulator():
+    def __init__(self):
+        self.WINDOW_WIDTH, self.WINDOW_HEIGHT = 1440, 1080
+        self.SIDEBAR_WIDTH = 350
 
-# ---------------------------
-# Pygame setup
-# ---------------------------
-pygame.init()
+        self.PADDING = 10
+        self.MARGIN = 20
 
-# Initial grid dimension (this will update once JSON is loaded)
-GRID_SIZE = 12
+        self.CI_MODE = os.environ.get("CI", "false").lower() == "true"
 
-# Sidebar constants
-SIDEBAR_RATIO = 0.25
-SIDEBAR_PADDING = 16
-ARROW_PADDING = 30
-
-# Create a resizable window.
-# We'll allocate main grid area dynamically based on whatever size the window is.
-INITIAL_WINDOW_SIZE = 600
-screen = pygame.display.set_mode(
-    (INITIAL_WINDOW_SIZE * (1 + SIDEBAR_RATIO), INITIAL_WINDOW_SIZE),
-    pygame.RESIZABLE
-)
-
-pygame.display.set_caption("TMT 2.0 Emulator")
-clock = pygame.time.Clock()
-
-# Fonts
-font = pygame.font.SysFont("monospace", 24, bold=True)
-button_font = pygame.font.SysFont("monospace", 18, bold=True)
-sidebar_font = pygame.font.SysFont("monospace", 16)
-
-# ---------------------------
-# Socket listener setup
-# ---------------------------
-HOST = "127.0.0.1"
-PORT = 5000
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind((HOST, PORT))
-sock.listen(1)
-print(f"Listening on {HOST}:{PORT} ...")
-
-bin_path = Path.cwd().parent / Path("bin/tmt_bin")
-print(bin_path)
-
-if not bin_path.exists():
-    print("Binary not found! Please build Go binary first...")
-    exit(0)
-
-go_proc = subprocess.Popen([str(bin_path)])
-
-conn, addr = sock.accept()
-
-# ---------------------------
-# Read incoming JSON lines
-# ---------------------------
-states = []
-with conn:
-    buffer = ""
-    while True:
-        data = conn.recv(4096)
-        if not data:
-            break
-        buffer += data.decode("utf-8")
-        while "\n" in buffer:
-            line, buffer = buffer.split("\n", 1)
-            try:
-                state = json.loads(line.strip())
-                states.append(state)
-            except json.JSONDecodeError:
-                continue
-
-print(f"Received {len(states)} game states.")
-conn.close()
-sock.close()
-
-
-# --- Update GRID_SIZE based on first state ---
-if states:
-    firstState = states[0]
-    if "Grid" in firstState:
-        firstGrid = firstState.get("Grid", [])[0]
-        GRID_SIZE = len(firstGrid)
-
-# ---------------------------
-# Main display loop
-# ---------------------------
-current_index = 0
-running = True
-while running:
-    mouse = pygame.mouse.get_pos()
-    click = False
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN and states:
-            if event.key in (pygame.K_RIGHT, pygame.K_d):
-                current_index = min(current_index + 1, len(states) - 1)
-            elif event.key in (pygame.K_LEFT, pygame.K_a):
-                current_index = max(current_index - 1, 0)
-            elif event.key in (pygame.K_PAGEDOWN, pygame.K_PERIOD):
-                current_index = min(current_index + 10, len(states) - 1)
-            elif event.key in (pygame.K_PAGEUP, pygame.K_COMMA):
-                current_index = max(current_index - 10, 0)
-    if not states:
-        screen.fill((0, 0, 0))
-        pygame.display.flip()
-        continue
-
-    state = states[current_index]
-    screen.fill((77, 77, 77))
-
-    
-    grid = state.get("Grid", [])
-
-    # --- Dynamic scaling ---
-    WINDOW_W, WINDOW_H = screen.get_size()
-    SIDEBAR_W = int(WINDOW_W * SIDEBAR_RATIO)
-    GRID_W = WINDOW_W - SIDEBAR_W
-    GRID_H = WINDOW_H
-    CELL_W = GRID_W / GRID_SIZE
-    CELL_H = GRID_H / GRID_SIZE
-
-    # --- Draw grid background ---
-    pygame.draw.rect(screen, (255, 255, 255), (0, 0, WINDOW_W, WINDOW_H))
-
-     # --- Draw grid lines ---
-    line_color = (50, 50, 50)
-    for y in range(GRID_SIZE + 1):
-        pygame.draw.line(screen, line_color,
-            (0, y * CELL_H),
-            (WINDOW_W, y * CELL_H)
-        )
-    for x in range(GRID_SIZE + 1):
-        pygame.draw.line(screen, line_color,
-            (x * CELL_W, 0),
-            (x * CELL_W, WINDOW_H)
+        self.parser = TMTParser()
+        self.controls = TMTControls(
+            index_change=self._on_index_change,
+            mouse_move=self._on_mouse_move,
+            mouse_click=self._on_mouse_click,
         )
 
-    # --- Draw agents ---
-    agents = state.get("Agents", {})
-    for uuid, agent in agents.items():
-        pos = agent["Pos"]
-        px = (pos["X"] + 0.5) * CELL_W
-        py = (pos["Y"] + 0.5) * CELL_H
-        radius = min(CELL_W, CELL_H) * 0.45
-        pygame.draw.circle(screen, (255, 0, 0), (px, py), radius)
+        self.INDEX = 0
+        self.GRID_SIZE = self.parser.get_grid_size()
 
-    # --- Sidebar background ---
-    pygame.draw.rect(screen, (30, 30, 30), (GRID_W, 0, SIDEBAR_W, WINDOW_H))
+        self._init_window()
 
-    # --- Sidebar text ---
-    sidebar_x = GRID_W + SIDEBAR_PADDING
-    sidebar_y = SIDEBAR_PADDING
-    sidebar_lines = [
-        f"Iteration: {state.get('Iteration', '?')}",
-        f"Turn: {state.get('Turn', '?')}",
-    ]
-    for idx, text in enumerate(sidebar_lines):
-        rendered = sidebar_font.render(text, True, (255, 255, 255))
-        screen.blit(rendered, (sidebar_x, sidebar_y + idx * 30))
+        self._on_index_change(self.INDEX)
 
-    pygame.display.flip()
-    clock.tick(30)
+    def _init_window(self):
+        sim_size = min(self.WINDOW_HEIGHT - 2*self.PADDING, self.WINDOW_WIDTH - self.SIDEBAR_WIDTH - 3*self.PADDING)
 
-    if CI_MODE:
-        break
+        with dpg.window(label="TMT") as self.TMTWindow:
+            with dpg.child_window(
+                label="Simulation",
+                tag="sim",
+                height=sim_size,
+                width=sim_size,
+                no_scrollbar=True,
+                border=False,
+                pos=[self.PADDING, self.PADDING]
+            ) as simulation_window:
+                self.grid = TMTGrid(parent=simulation_window, initState=self.parser.get_state(self.INDEX))
 
-pygame.quit()
+            with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True) as sidebar:
+                
+                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation)
+
+
+        dpg.set_primary_window(self.TMTWindow, True)
+
+    # =====
+    # Viewport Config
+    # =====
+
+    def viewport_config(self):
+        # Necessary to set the window size
+        dpg.create_viewport()
+        dpg.setup_dearpygui()
+        dpg.show_viewport()
+        dpg.set_viewport_title("TMT 2.0 Simulator")
+        dpg.set_viewport_width(self.WINDOW_WIDTH)
+        dpg.set_viewport_height(self.WINDOW_HEIGHT)
+        dpg.set_viewport_resize_callback(self._on_viewport_resize)
+
+
+    def _on_viewport_resize(self, sender, app_data):
+        new_width, new_height, _, _ = app_data
+
+        # Compute new simulation size based on viewport size
+        sim_size = min(new_height - 2*self.PADDING, new_width - self.SIDEBAR_WIDTH - 3*self.PADDING)
+
+        # Resize simulation child window
+        dpg.configure_item("sim", width=sim_size, height=sim_size)
+
+        # Move sidebar to the new position
+        dpg.configure_item("side", pos=[sim_size + 2*self.PADDING, self.PADDING])
+
+        dpg.configure_item(self.grid.drawlist_tag, width=sim_size, height=sim_size)
+        state = self.parser.get_state(self.INDEX)
+        self.grid.draw_blank_grid(state)
+        self.grid.update_grid(state)
+
+    # =====
+    # Top-level Controls
+    # =====
+
+    def _on_index_change(self, new_index):
+        """
+            When a new intex is given, the corresponding state is visualised
+        """
+        # prevent out-of-range access
+        if new_index < 0 or new_index >= len(self.parser.states):
+            return
+
+        self.INDEX = new_index
+
+        state = self.parser.get_state(self.INDEX)
+        self.grid.update_grid(state)
+        self.sidebar.update_state_metrics(state)
+
+    def _get_mouse_coord(self):
+        mx, my = dpg.get_mouse_pos(local=False)
+        sim_x, sim_y = dpg.get_item_pos("sim")
+        sim_w = dpg.get_item_width("sim")
+        sim_h = dpg.get_item_height("sim")
+
+        corr_x = mx - sim_x
+        corr_y = my - sim_y
+
+        if  corr_x < 0 or corr_y < 0 or corr_x > sim_w or corr_y > sim_h:
+            return "(?, ?)", False
+
+        x = int((corr_x / sim_w) * self.GRID_SIZE)
+        y = int((corr_y / sim_h) * self.GRID_SIZE)
+        return (x, y), True
+
+    def _on_mouse_move(self):
+        """
+            Passes the clicked grid-coordinate, else nothing
+        """
+        coord, found = self._get_mouse_coord()
+        state = self.parser.get_state(self.INDEX)
+        self.sidebar.update_coord(coord=coord, valid=found, state=state)
+
+    def _on_mouse_click(self):
+        coord, found = self._get_mouse_coord()
+        if not found:
+            return
+
+        x, y = coord
+
+        state = self.parser.get_state(self.INDEX)
+        agents = state.get("Agents", {})
+        for uuid, agent in agents.items():
+            pos = agent["Pos"]
+            if pos["X"] == x and pos["Y"] == y:
+                self.sidebar.update_agent(uuid, agent)
+                self.grid.colour_agent(uuid)
+                return
+
+        
+
