@@ -2,8 +2,9 @@ import dearpygui.dearpygui as dpg
 
 class TMTSidebar:
     def __init__(self, save_sim=None):
-        with dpg.collapsing_header(label="Simulation State", default_open=True):
-            dpg.add_text("This is where information about the simulation will be printed", wrap=300, tag="state_text") 
+        with dpg.collapsing_header(label="Simulation State", tag="sim_state", default_open=True):
+            dpg.add_text(f"Iteration: 0", tag="iter_text")
+            dpg.add_text(f"Turn: 0", tag="turn_text")
             if save_sim is not None:
                 dpg.add_button(label="Save Simulation", callback=save_sim)
         with dpg.collapsing_header(label="Tile Info", tag="tile", default_open=True):
@@ -15,11 +16,12 @@ class TMTSidebar:
     def update_state_metrics(self, state=None):
         if state is None:
             return
-        
-        dpg.set_value(
-            "state_text",
-            f"Iteration: {state.get("Iteration", "?")}\nTurn: {state.get("Turn", "?")}\n"
-            )
+
+        iter_num = state.get("Iteration", "?")
+        turn_num = state.get("Turn", "?")
+
+        dpg.set_value("iter_text", f"Iteration: {iter_num}")
+        dpg.set_value("turn_text", f"Turn: {turn_num}")
     
     def update_coord(self, coord=None, valid=False, state=None):
         if coord is None:
@@ -30,7 +32,7 @@ class TMTSidebar:
             old_coord = dpg.get_item_user_data("coord")
             if coord == old_coord:
                 return
-            
+
         # Delete old children
         dpg.delete_item("tile", children_only=True)
 
