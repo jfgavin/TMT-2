@@ -121,8 +121,9 @@ class TMTEmulator():
         """
             Passes the clicked grid-coordinate, else nothing
         """
-        coord, _ = self._get_mouse_coord()
-        self.sidebar.update_coord(coord)
+        coord, found = self._get_mouse_coord()
+        state = self.parser.get_state(self.INDEX)
+        self.sidebar.update_coord(coord=coord, valid=found, state=state)
 
     def _on_mouse_click(self):
         coord, found = self._get_mouse_coord()
