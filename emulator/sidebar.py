@@ -52,10 +52,12 @@ class TMTSidebar:
 
     def update_agent(self, uuid=None, agent=None):
         if uuid is None or agent is None:
+            dpg.configure_item("agent_header", show=False)
             return
-        
-        dpg.configure_item("agent_header", show=True)
-        dpg.set_value("agent_name", "Name: " + agent["Name"])
-        dpg.set_value("agent_energy", f"Energy: {agent["Energy"]}")
-        
 
+        dpg.delete_item("agent_header", children_only=True)
+
+        for key, value in agent.items():
+            dpg.add_text(f"{key}: {value}", parent="agent_header")
+
+        dpg.configure_item("agent_header", show=True)
