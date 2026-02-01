@@ -45,19 +45,26 @@ class TMTSidebar:
 
         grid = state["Grid"]
         x, y = coord
-        tile = grid[y][x]
+        try:
+            tile = grid[y][x]
+        except:
+            # Coordinate is not valid within the grid
+            return
 
         for key, value in tile.items():
             dpg.add_text(f"{key}: {value}", parent="tile")
 
     def update_agent(self, uuid=None, agent=None):
-        if uuid is None or agent is None:
-            dpg.configure_item("agent_header", show=False)
-            return
-
         dpg.delete_item("agent_header", children_only=True)
 
-        for key, value in agent.items():
-            dpg.add_text(f"{key}: {value}", parent="agent_header")
+        if uuid is None:
+            dpg.configure_item("agent_header", show=False)
+            return
+        elif agent is None:
+            # Agent is dead if UUID selected but not in state
+            dpg.add_text("DEAD", parent="agent_header")
+        else:
+            for key, value in agent.items():
+                dpg.add_text(f"{key}: {value}", parent="agent_header")
 
         dpg.configure_item("agent_header", show=True)

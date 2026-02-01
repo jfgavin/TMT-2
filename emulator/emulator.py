@@ -100,6 +100,7 @@ class TMTEmulator():
         state = self.parser.get_state(self.INDEX)
         self.grid.update_grid(state)
         self.sidebar.update_state_metrics(state)
+        self._update_selected_agent()
 
     def _get_mouse_coord(self):
         mx, my = dpg.get_mouse_pos(local=False)
@@ -137,9 +138,24 @@ class TMTEmulator():
         for uuid, agent in agents.items():
             pos = agent["Pos"]
             if pos["X"] == x and pos["Y"] == y:
-                self.sidebar.update_agent(uuid, agent)
-                self.grid.colour_agent(uuid)
+                self.selected_agent = uuid
+                self._update_selected_agent()
                 return
 
-        
+    def _update_selected_agent(self):
+        if not hasattr(self, "selected_agent"):
+            return
+        uuid = self.selected_agent
+
+        state = self.parser.get_state(self.INDEX)
+        agents = state.get("Agents", {})
+        try:
+            # Try to find agent by UUID in this state
+            agent = agents[uuid]
+            self.grid.colour_agent(uuid)    # Colour the selected agent if found
+        except:
+            # Agent is not in this state - assume dead
+            agent = None
+
+        self.sidebar.update_agent(uuid, agent)
 

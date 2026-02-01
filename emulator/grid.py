@@ -86,17 +86,11 @@ class TMTGrid:
             agx = (pos["X"] + 0.5) * cell_width
             agy = (pos["Y"] + 0.5) * cell_height
             radius = cell_width * 0.5
-           
-            if hasattr(self, "selected_agent") and uuid == self.selected_agent:
-                colour = (0, 255, 0)
-            else:
-                colour = (255, 0, 0)
-
 
             agent_circle = dpg.draw_circle(
                 (agx, agy),
                 radius,
-                fill=colour,
+                fill=(255, 0, 0),
                 parent=self.drawlist_tag,
                 tag=f"agent-{uuid}",
             )
@@ -123,5 +117,3 @@ class TMTGrid:
             dpg.configure_item(agent, fill=(255, 0, 0))
 
         dpg.configure_item(f"agent-{uuid}", fill=(0, 255, 0))
-
-        self.selected_agent = uuid
