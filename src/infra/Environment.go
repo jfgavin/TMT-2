@@ -92,22 +92,22 @@ func (env *Environment) BoundPos(pos Position) Position {
 	return pos
 }
 
-func (env *Environment) IntroduceResources(resourceCount, clusterCount int) {
-	const radius = 5 // Controls size of clusters
-	const lambda = 3 // Controls distribution of resources between centre vs radius
+func (env *Environment) IntroduceResources() {
+	cfg := env.cfg.Resources
+	radius, lambda := float64(cfg.Radius), float64(cfg.Lambda)
+
 	maxTerm := 1 - math.Exp(-radius/lambda)
 
 	// Find cluster centres
 	// Ensure their most extreme points are not outside of the grid
-	centres := make([]Position, clusterCount)
-	for i := 0; i < clusterCount; i++ {
-		centres[i] = env.GetRandPosPadded(radius)
+	centres := make([]Position, cfg.ClusterCount)
+	for i := 0; i < cfg.ClusterCount; i++ {
+		centres[i] = env.GetRandPosPadded(cfg.Radius)
 	}
 
 	// Randomly place resources, one-by-one
-
-	for resourceCount > 0 {
-		chosenCentre := centres[rand.Intn(clusterCount)]
+	for cfg.ResourceCount > 0 {
+		chosenCentre := centres[rand.Intn(cfg.ClusterCount)]
 
 		// Random angle
 		theta := rand.Float64() * 2 * math.Pi
@@ -135,7 +135,7 @@ func (env *Environment) IntroduceResources(resourceCount, clusterCount int) {
 
 		if found {
 			tile.AddResources(1)
-			resourceCount--
+			cfg.ResourceCount--
 		}
 	}
 }

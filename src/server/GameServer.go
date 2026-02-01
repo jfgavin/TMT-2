@@ -20,23 +20,21 @@ type GameServer struct {
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
+	serv.ElimDrainedAgents()
 	for _, ag := range serv.GetAgentMap() {
 
 		pos := ag.GetPos()
-
 		pos.X = pos.X + (-1 + rand.Intn(3))
 		pos.Y = pos.Y + (-1 + rand.Intn(3))
-
 		ag.SetPos(pos)
+
+		ag.SubEnergy(1)
 	}
-	StreamGameIteration(serv, i, j)
+	StreamGameIteration(serv, i, j) // ALWAYS do this at the end of a turn
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
-	for _, ag := range serv.GetAgentMap() {
-		ag.ResetEnergy()
-	}
-	serv.Env.IntroduceResources(10000, 10)
+	serv.Env.IntroduceResources()
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {

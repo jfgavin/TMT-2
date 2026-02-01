@@ -3,7 +3,6 @@ package infra
 import "github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
 
 type ITMTAgent interface {
-	// embed functionality from package
 	agent.IAgent[ITMTAgent]
 
 	DoMessaging()
@@ -14,9 +13,9 @@ type ITMTAgent interface {
 
 	SetPos(pos Position)
 
+	AddEnergy(energy int)
+
+	SubEnergy(energy int)
+
 	GetEnergy() int
-
-	SetEnergy(energy int)
-
-	ResetEnergy()
 }

@@ -17,7 +17,15 @@ type AgentConfig struct {
 }
 
 type EnvironmentConfig struct {
-	GridSize int
+	GridSize  int
+	Resources ResourceConfig
+}
+
+type ResourceConfig struct {
+	ResourceCount int
+	ClusterCount  int
+	Radius        int
+	Lambda        int
 }
 
 func NewConfig() Config {
@@ -32,6 +40,12 @@ func NewConfig() Config {
 		},
 		Env: EnvironmentConfig{
 			GridSize: 64,
+			Resources: ResourceConfig{
+				ResourceCount: 100,
+				ClusterCount:  4,
+				Radius:        5,
+				Lambda:        4,
+			},
 		},
 	}
 }

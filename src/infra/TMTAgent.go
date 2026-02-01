@@ -30,16 +30,16 @@ func (tmta *TMTAgent) SetPos(pos Position) {
 	tmta.Pos = tmta.env.BoundPos(pos)
 }
 
+func (tmta *TMTAgent) AddEnergy(energy int) {
+	tmta.Energy += energy
+}
+
+func (tmta *TMTAgent) SubEnergy(energy int) {
+	tmta.Energy -= energy
+}
+
 func (tmta *TMTAgent) GetEnergy() int {
 	return tmta.Energy
-}
-
-func (tmta *TMTAgent) SetEnergy(energy int) {
-	tmta.Energy = energy
-}
-
-func (tmta *TMTAgent) ResetEnergy() {
-	tmta.Energy = tmta.cfg.StartingEnergy
 }
 
 func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env IEnvironment, name string, initPos Position) *TMTAgent {
