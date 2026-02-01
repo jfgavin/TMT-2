@@ -13,25 +13,43 @@ type ServerConfig struct {
 }
 
 type AgentConfig struct {
-	StartingEnergy int
+	StartingEnergy  int
+	PerceptiveRange int
+	ResourceYield   int
 }
 
 type EnvironmentConfig struct {
-	GridSize int
+	GridSize  int
+	Resources ResourceConfig
+}
+
+type ResourceConfig struct {
+	ResourceCount int
+	ClusterCount  int
+	Radius        int
+	Lambda        int
 }
 
 func NewConfig() Config {
 	return Config{
 		Serv: ServerConfig{
 			Iterations: 2,
-			Turns:      5,
+			Turns:      50,
 			NumAgents:  4,
 		},
 		Agent: AgentConfig{
-			StartingEnergy: 5,
+			StartingEnergy:  25,
+			PerceptiveRange: 20,
+			ResourceYield:   3,
 		},
 		Env: EnvironmentConfig{
 			GridSize: 64,
+			Resources: ResourceConfig{
+				ResourceCount: 100,
+				ClusterCount:  4,
+				Radius:        5,
+				Lambda:        4,
+			},
 		},
 	}
 }

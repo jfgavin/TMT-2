@@ -5,14 +5,15 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jfgavin/TMT-2/src/infra"
+	"github.com/jfgavin/TMT-2/src/agent"
+	"github.com/jfgavin/TMT-2/src/env"
 )
 
 type GameState struct {
 	Iteration int
 	Turn      int
-	Grid      [][]*infra.Tile
-	Agents    map[uuid.UUID]infra.ITMTAgent
+	Grid      [][]*env.Tile
+	Agents    map[uuid.UUID]agent.ITMTAgent
 }
 
 func BuildGameState(serv *GameServer, iteration, turn int) GameState {

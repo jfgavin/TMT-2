@@ -8,34 +8,29 @@ import (
 	"time"
 
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/server"
+	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/config"
-	"github.com/jfgavin/TMT-2/src/infra"
+	"github.com/jfgavin/TMT-2/src/env"
 )
 
 type GameServer struct {
-	*server.BaseServer[infra.ITMTAgent]
+	*server.BaseServer[agent.ITMTAgent]
 	cfg  config.ServerConfig
-	Env  *infra.Environment
+	Env  *env.Environment
 	Conn net.Conn
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
+	serv.ElimDrainedAgents()
 	for _, ag := range serv.GetAgentMap() {
-
-		pos := ag.GetPos()
-
-		pos.X = pos.X + (-1 + rand.Intn(3))
-		pos.Y = pos.Y + (-1 + rand.Intn(3))
-
-		ag.SetPos(pos)
+		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
+	serv.DrainAgents()
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
-	for _, ag := range serv.GetAgentMap() {
-		ag.ResetEnergy()
-	}
+	serv.Env.IntroduceResources()
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {
@@ -78,15 +73,15 @@ func (serv *GameServer) Start() {
 
 func NewGameServer(cfg config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer: server.CreateBaseServer[infra.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
-		Env:        infra.NewEnvironment(cfg.Env),
+		BaseServer: server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:        env.NewEnvironment(cfg.Env),
 		cfg:        cfg.Serv,
 	}
 
 	for i := 0; i < cfg.Serv.NumAgents; i++ {
-		pos := infra.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
+		pos := env.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
 
-		ga := infra.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
+		ga := agent.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
 		serv.AddAgent(ga)
 	}
 
