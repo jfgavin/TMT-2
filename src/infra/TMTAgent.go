@@ -30,12 +30,8 @@ func (tmta *TMTAgent) SetPos(pos Position) {
 	tmta.Pos = tmta.env.BoundPos(pos)
 }
 
-func (tmta *TMTAgent) AddEnergy(energy int) {
-	tmta.Energy += energy
-}
-
-func (tmta *TMTAgent) SubEnergy(energy int) {
-	tmta.Energy -= energy
+func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {
+	tmta.Energy += energyDelta
 }
 
 func (tmta *TMTAgent) GetEnergy() int {

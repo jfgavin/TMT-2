@@ -28,9 +28,9 @@ func (serv *GameServer) RunTurn(i, j int) {
 		pos.Y = pos.Y + (-1 + rand.Intn(3))
 		ag.SetPos(pos)
 
-		ag.SubEnergy(1)
 	}
-	StreamGameIteration(serv, i, j) // ALWAYS do this at the end of a turn
+	StreamGameIteration(serv, i, j)
+	serv.DrainAgents()
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {

@@ -13,9 +13,7 @@ type ITMTAgent interface {
 
 	SetPos(pos Position)
 
-	AddEnergy(energy int)
-
-	SubEnergy(energy int)
+	ChangeEnergy(energyDelta int)
 
 	GetEnergy() int
 }
