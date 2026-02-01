@@ -12,7 +12,7 @@ func (tmta *TMTAgent) getPercievedTiles() []*env.Tile {
 	for y, row := range tmta.env.GetGrid() {
 		for x, tile := range row {
 			tilePos := env.Position{X: x, Y: y}
-			if tmta.Pos.ManhatDist(tilePos) <= tmta.percetiveRange {
+			if tmta.Pos.ManhatDist(tilePos) <= tmta.cfg.PerceptiveRange {
 				percievedTiles = append(percievedTiles, tile)
 			}
 		}

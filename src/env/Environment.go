@@ -153,7 +153,7 @@ func (env *Environment) IntroduceResources() {
 		tile, found := env.GetTile(newPos)
 
 		if found {
-			tile.AddResources(1)
+			tile.ChangeResources(1)
 			cfg.ResourceCount--
 		}
 	}

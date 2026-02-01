@@ -15,6 +15,7 @@ type ServerConfig struct {
 type AgentConfig struct {
 	StartingEnergy  int
 	PerceptiveRange int
+	ResourceYield   int
 }
 
 type EnvironmentConfig struct {
@@ -39,6 +40,7 @@ func NewConfig() Config {
 		Agent: AgentConfig{
 			StartingEnergy:  25,
 			PerceptiveRange: 20,
+			ResourceYield:   3,
 		},
 		Env: EnvironmentConfig{
 			GridSize: 64,

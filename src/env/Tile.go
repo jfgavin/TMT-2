@@ -14,6 +14,6 @@ func (tile *Tile) GetResources() int {
 	return tile.Resources
 }
 
-func (tile *Tile) AddResources(resources int) {
-	tile.Resources += resources
+func (tile *Tile) ChangeResources(resourceDelta int) {
+	tile.Resources += resourceDelta
 }

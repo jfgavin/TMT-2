@@ -9,9 +9,7 @@ type ITMTAgent interface {
 
 	DoMessaging()
 
-	GetName() string
-
-	Move()
+	PlayTurn()
 
 	ChangeEnergy(energyDelta int)
 

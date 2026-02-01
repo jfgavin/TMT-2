@@ -23,7 +23,7 @@ type GameServer struct {
 func (serv *GameServer) RunTurn(i, j int) {
 	serv.ElimDrainedAgents()
 	for _, ag := range serv.GetAgentMap() {
-		ag.Move()
+		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
 	serv.DrainAgents()
