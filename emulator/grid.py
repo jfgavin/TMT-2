@@ -75,11 +75,13 @@ class TMTGrid:
         cell_width = canvas_width / self.GRID_SIZE
         cell_height = canvas_height / self.GRID_SIZE
 
-        # Draw Agents
+        # Redraw Agents
+        for agent in self.agents:
+            dpg.delete_item(agent)
         self.agents.clear()
-        agents = state.get("Agents", {})
-        for uuid, agent in agents.items():
-            dpg.delete_item(f"agent-{uuid}")
+
+        freshAgents = state.get("Agents", {})
+        for uuid, agent in freshAgents.items():
             pos = agent["Pos"]
             agx = (pos["X"] + 0.5) * cell_width
             agy = (pos["Y"] + 0.5) * cell_height
@@ -88,7 +90,6 @@ class TMTGrid:
             agent_circle = dpg.draw_circle(
                 (agx, agy),
                 radius,
-                color=(255, 0, 0),
                 fill=(255, 0, 0),
                 parent=self.drawlist_tag,
                 tag=f"agent-{uuid}",
@@ -115,4 +116,4 @@ class TMTGrid:
         for agent in self.agents:
             dpg.configure_item(agent, fill=(255, 0, 0))
 
-        dpg.configure_item(f"agent-{uuid}", fill=(0, 0, 255))
+        dpg.configure_item(f"agent-{uuid}", fill=(0, 255, 0))
