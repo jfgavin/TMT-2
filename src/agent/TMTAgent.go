@@ -13,6 +13,7 @@ type TMTAgent struct {
 	Name                        string
 	Pos                         env.Position
 	Energy                      int
+	percetiveRange              int
 }
 
 func (tmta *TMTAgent) DoMessaging() {
@@ -21,14 +22,6 @@ func (tmta *TMTAgent) DoMessaging() {
 
 func (tmta *TMTAgent) GetName() string {
 	return tmta.Name
-}
-
-func (tmta *TMTAgent) GetPos() env.Position {
-	return tmta.Pos
-}
-
-func (tmta *TMTAgent) SetPos(pos env.Position) {
-	tmta.Pos = tmta.env.BoundPos(pos)
 }
 
 func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {
@@ -41,11 +34,12 @@ func (tmta *TMTAgent) GetEnergy() int {
 
 func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, name string, initPos env.Position) *TMTAgent {
 	return &TMTAgent{
-		BaseAgent: agent.CreateBaseAgent(funcs),
-		cfg:       cfg,
-		env:       env,
-		Name:      name,
-		Pos:       initPos,
-		Energy:    cfg.StartingEnergy,
+		BaseAgent:      agent.CreateBaseAgent(funcs),
+		cfg:            cfg,
+		env:            env,
+		Name:           name,
+		Pos:            initPos,
+		Energy:         cfg.StartingEnergy,
+		percetiveRange: cfg.PerceptiveRange,
 	}
 }

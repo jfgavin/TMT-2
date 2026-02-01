@@ -13,7 +13,8 @@ type ServerConfig struct {
 }
 
 type AgentConfig struct {
-	StartingEnergy int
+	StartingEnergy  int
+	PerceptiveRange int
 }
 
 type EnvironmentConfig struct {
@@ -32,11 +33,12 @@ func NewConfig() Config {
 	return Config{
 		Serv: ServerConfig{
 			Iterations: 2,
-			Turns:      5,
+			Turns:      50,
 			NumAgents:  4,
 		},
 		Agent: AgentConfig{
-			StartingEnergy: 5,
+			StartingEnergy:  25,
+			PerceptiveRange: 20,
 		},
 		Env: EnvironmentConfig{
 			GridSize: 64,

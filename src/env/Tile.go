@@ -10,6 +10,10 @@ func NewTile(resources int) *Tile {
 	}
 }
 
+func (tile *Tile) GetResources() int {
+	return tile.Resources
+}
+
 func (tile *Tile) AddResources(resources int) {
 	tile.Resources += resources
 }

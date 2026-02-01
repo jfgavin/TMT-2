@@ -7,11 +7,6 @@ import (
 	"github.com/jfgavin/TMT-2/src/config"
 )
 
-// === Subtypes ===
-type Position struct {
-	X, Y int
-}
-
 // === Environment Type ===
 
 type Environment struct {
@@ -40,24 +35,48 @@ func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
 
 // === Environment Methods ===
 
-func (env *Environment) TilePos(tile *Tile) (Position, bool) {
+func (env *Environment) GetGrid() [][]*Tile {
+	return env.Grid
+}
+
+func (env *Environment) TilePos(tile *Tile) Position {
 	for y := range env.Grid {
 		for x := range env.Grid[y] {
 			if env.Grid[y][x] == tile {
-				return Position{X: x, Y: y}, true
+				return Position{X: x, Y: y}
 			}
 		}
 	}
-	return Position{}, false
+	return Position{}
 }
 
 func (env *Environment) GetTile(pos Position) (*Tile, bool) {
+	if pos.Y < 0 || pos.Y >= env.cfg.GridSize {
+		return nil, false
+	}
+
+	if pos.X < 0 || pos.X >= env.cfg.GridSize {
+		return nil, false
+	}
+
 	tile := env.Grid[pos.Y][pos.X]
 	if tile != nil {
 		return tile, true
 	}
 
 	return nil, false
+}
+
+func (env *Environment) LocalTiles(tile *Tile, radius int) []*Tile {
+	circledTiles := make([]*Tile, 0)
+	tilePos := env.TilePos(tile)
+	for _, localPos := range tilePos.LocalPositions(radius) {
+		localTile, found := env.GetTile(localPos)
+		if found {
+			circledTiles = append(circledTiles, localTile)
+		}
+	}
+	return circledTiles
 }
 
 func (env *Environment) GetRandPos() Position {

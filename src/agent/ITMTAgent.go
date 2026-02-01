@@ -2,7 +2,6 @@ package agent
 
 import (
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
-	"github.com/jfgavin/TMT-2/src/env"
 )
 
 type ITMTAgent interface {
@@ -12,9 +11,7 @@ type ITMTAgent interface {
 
 	GetName() string
 
-	GetPos() env.Position
-
-	SetPos(pos env.Position)
+	Move()
 
 	ChangeEnergy(energyDelta int)
 
