@@ -1,4 +1,4 @@
-package infra
+package env
 
 type IEnvironment interface {
 	GetTile(pos Position) (*Tile, bool)

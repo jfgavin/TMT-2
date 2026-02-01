@@ -1,4 +1,4 @@
-package infra
+package env
 
 type Tile struct {
 	Resources int

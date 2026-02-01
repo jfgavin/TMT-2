@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/server"
+	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/config"
-	"github.com/jfgavin/TMT-2/src/infra"
+	"github.com/jfgavin/TMT-2/src/env"
 )
 
 type GameServer struct {
-	*server.BaseServer[infra.ITMTAgent]
+	*server.BaseServer[agent.ITMTAgent]
 	cfg  config.ServerConfig
-	Env  *infra.Environment
+	Env  *env.Environment
 	Conn net.Conn
 }
 
@@ -77,15 +78,15 @@ func (serv *GameServer) Start() {
 
 func NewGameServer(cfg config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer: server.CreateBaseServer[infra.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
-		Env:        infra.NewEnvironment(cfg.Env),
+		BaseServer: server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:        env.NewEnvironment(cfg.Env),
 		cfg:        cfg.Serv,
 	}
 
 	for i := 0; i < cfg.Serv.NumAgents; i++ {
-		pos := infra.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
+		pos := env.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
 
-		ga := infra.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
+		ga := agent.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
 		serv.AddAgent(ga)
 	}
 
