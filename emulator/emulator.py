@@ -1,9 +1,8 @@
 import dearpygui.dearpygui as dpg
-import os
-from grid import TMTGrid
-from parser import TMTParser
-from controls import TMTControls
-from sidebar import TMTSidebar
+from emulator.grid import TMTGrid
+from emulator.parser import TMTParser
+from emulator.controls import TMTControls
+from emulator.sidebar import TMTSidebar
 
 class TMTEmulator():
     def __init__(self):
@@ -12,8 +11,6 @@ class TMTEmulator():
 
         self.PADDING = 10
         self.MARGIN = 20
-
-        self.CI_MODE = os.environ.get("CI", "false").lower() == "true"
 
         self.parser = TMTParser()
         self.controls = TMTControls(

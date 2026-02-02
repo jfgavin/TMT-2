@@ -1,7 +1,7 @@
 import argparse
-from gobuild import build_go_binary, BIN_PATH
 import dearpygui.dearpygui as dpg
-from emulator import TMTEmulator
+from emulator.emulator import TMTEmulator
+from emulator.gobuild import build_go_binary, BIN_PATH
 
 
 def main():

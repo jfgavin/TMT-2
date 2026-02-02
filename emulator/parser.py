@@ -1,7 +1,7 @@
 import json
 import socket
 import subprocess
-from gobuild import build_go_binary, BIN_PATH
+from emulator.gobuild import build_go_binary, BIN_PATH
 from pathlib import Path
 from datetime import datetime
 
