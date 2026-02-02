@@ -1,3 +1,4 @@
+import os
 import argparse
 import dearpygui.dearpygui as dpg
 from emulator.emulator import TMTEmulator
@@ -12,6 +13,10 @@ def main():
 
     if args.build or not BIN_PATH.exists():
         build_go_binary()
+
+    if os.environ.get("CI") == "true" or os.environ.get("DISPLAY") is None:
+        print("Emulator running in CI - exiting early...")
+        return
 
     # Run dpg emulator
     dpg.create_context()
