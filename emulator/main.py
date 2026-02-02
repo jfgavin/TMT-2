@@ -1,9 +1,30 @@
+import os
+import argparse
 import dearpygui.dearpygui as dpg
-from emulator import TMTEmulator
+from emulator.emulator import TMTEmulator
+from emulator.gobuild import build_go_binary, BIN_PATH
 
-dpg.create_context()
 
-emulator = TMTEmulator()
-emulator.viewport_config()
+def main():
+    # Check build flag
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-b", "--build", action="store_true", help="Build Go binary before running")
+    args = parser.parse_args()
 
-dpg.start_dearpygui()
+    if args.build or not BIN_PATH.exists():
+        build_go_binary()
+
+    if os.environ.get("CI") == "true" or os.environ.get("DISPLAY") is None:
+        print("Emulator running in CI - exiting early...")
+        return
+
+    # Run dpg emulator
+    dpg.create_context()
+
+    emulator = TMTEmulator()
+    emulator.viewport_config()
+
+    dpg.start_dearpygui()
+
+if __name__ == "__main__":
+    main()

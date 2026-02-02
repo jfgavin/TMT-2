@@ -1,3 +1,9 @@
+# GoLang binary
 bin
+
+# emulator
 emulator/saves
 **/__pycache__
+
+# pyproject
+**/*.egg-info

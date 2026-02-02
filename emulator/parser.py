@@ -1,6 +1,7 @@
 import json
 import socket
 import subprocess
+from emulator.gobuild import build_go_binary, BIN_PATH
 from pathlib import Path
 from datetime import datetime
 
@@ -18,13 +19,12 @@ class TMTParser():
         sock.listen(1)
         print(f"Listening on {self.HOST}:{self.PORT} ...")
 
-        bin_path = Path.cwd().parent / Path("bin/tmt_bin")
+        if not BIN_PATH.exists():
+            build_go_binary()
 
-        if not bin_path.exists():
-            print("Binary not found! Please build Go binary first...")
-            exit(0)
+        assert BIN_PATH.exists()
 
-        go_proc = subprocess.Popen([str(bin_path)])
+        go_proc = subprocess.Popen([str(BIN_PATH)])
         conn, addr = sock.accept()
 
         states = []
