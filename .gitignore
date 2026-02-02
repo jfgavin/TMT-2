@@ -6,5 +6,4 @@ emulator/saves
 **/__pycache__
 
 # pyproject
-*.toml
-*.egg-info
+**/*.egg-info
