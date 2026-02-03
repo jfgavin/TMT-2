@@ -21,14 +21,20 @@ func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
 	return agents
 }
 
-func (serv *GameServer) DrainAgents() {
+func (serv *GameServer) EstablishInitialObstructions() {
+	// Clear agent stored obstructions, then establish current positions
 	for _, ag := range serv.GetAgentMap() {
-		ag.ChangeEnergy(-1)
+		ag.ClearObstructions()
+	}
+	for _, ag := range serv.GetAgentMap() {
+		ag.BroadcastPosition()
 	}
 }
 
-func (serv *GameServer) ElimDrainedAgents() {
+func (serv *GameServer) DrainAgents() {
+	// Drain agent, and if -ve energy, kill it
 	for _, ag := range serv.GetAgentMap() {
+		ag.ChangeEnergy(-1)
 		if ag.GetEnergy() < 0 {
 			serv.RemoveAgent(ag)
 		}
