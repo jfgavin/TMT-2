@@ -25,7 +25,7 @@ func (serv *GameServer) RunTurn(i, j int) {
 	for _, ag := range serv.GetAgentMap() {
 		ag.BroadcastPosition()
 	}
-	for _, ag := range serv.GetAgentMap() {
+	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
