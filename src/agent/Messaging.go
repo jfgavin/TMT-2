@@ -17,10 +17,6 @@ func (tmta *TMTAgent) NewObstructionMessage(pos env.Position) *ObstructionMessag
 	}
 }
 
-func (tmta *TMTAgent) HandleObstructionMessage(msg *ObstructionMessage) {
-	tmta.obstructions[msg.Pos] = struct{}{}
-}
-
 func (msg *ObstructionMessage) InvokeMessageHandler(agent ITMTAgent) {
 	agent.HandleObstructionMessage(msg)
 }

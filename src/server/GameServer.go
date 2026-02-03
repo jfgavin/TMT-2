@@ -21,12 +21,18 @@ type GameServer struct {
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
-	serv.EstablishInitialObstructions()
-	for _, ag := range serv.GetShuffledAgents() {
+	serv.ElimDrainedAgents()
+	for _, ag := range serv.GetAgentMap() {
+		ag.BroadcastPosition()
+	}
+	for _, ag := range serv.GetAgentMap() {
 		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
 	serv.DrainAgents()
+	for _, ag := range serv.GetAgentMap() {
+		ag.ClearObstructions()
+	}
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {

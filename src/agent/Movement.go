@@ -1,7 +1,8 @@
 package agent
 
 import (
-	"math/rand/v2"
+	"fmt"
+	"math/rand"
 
 	"github.com/jfgavin/TMT-2/src/env"
 )
@@ -89,19 +90,31 @@ func (tmta *TMTAgent) GetBestTarget() (env.Position, bool) {
 	return bestTarget, bestUtility > 0
 }
 
-// Try to move to resources, otherwise explore, otherwise stand still
-func (tmta *TMTAgent) Move() {
-	tmta.Target = env.Position{}
-	step := tmta.Pos
+func (tmta *TMTAgent) getUnobstructedBestStep() env.Position {
+	target := tmta.getTargetPos()
+	nextSteps := tmta.Pos.GetScoredNextSteps(target)
 
-	if best, ok := tmta.GetBestTarget(); ok {
-		step = tmta.Pos.GreedyNextStep(best)
-		tmta.Target = best
-	} else if randStep, ok := tmta.GetRandomStep(); ok {
-		step = randStep
-	} else {
-		return
+	for _, step := range nextSteps {
+
+		obstructed := false
+		for _, obstruction := range tmta.obstructions {
+			if step.X == obstruction.X && step.Y == obstruction.Y {
+				obstructed = true
+				break
+			}
+		}
+		if !obstructed {
+			return step
+		}
 	}
+	fmt.Printf("\tBlocked! Not moving...\n")
+	return tmta.Pos
+}
 
-	tmta.SetPosAndBroadcast(step)
+func (tmta *TMTAgent) Move() {
+	tmta.Pos = tmta.getUnobstructedBestStep()
+}
+
+func (tmta *TMTAgent) HandleObstructionMessage(msg *ObstructionMessage) {
+	tmta.obstructions = append(tmta.obstructions, msg.Pos)
 }
