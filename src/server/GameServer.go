@@ -23,10 +23,16 @@ type GameServer struct {
 func (serv *GameServer) RunTurn(i, j int) {
 	serv.ElimDrainedAgents()
 	for _, ag := range serv.GetAgentMap() {
+		ag.BroadcastPosition()
+	}
+	for _, ag := range serv.GetAgentMap() {
 		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
 	serv.DrainAgents()
+	for _, ag := range serv.GetAgentMap() {
+		ag.ClearObstructions()
+	}
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
@@ -34,33 +40,7 @@ func (serv *GameServer) RunStartOfIteration(int) {
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {
-	serv.RunMessagingTurn()
-}
 
-// make all agents message
-func (serv *GameServer) RunMessagingTurn() {
-	// Let agents signal they're ready for communication
-	for _, gc := range serv.GetAgentMap() {
-		gc.DoMessaging()
-	}
-}
-
-// Socket
-func (serv *GameServer) InitSocket(address string) error {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return fmt.Errorf("failed to connect to Python: %w", err)
-	} else {
-		fmt.Printf("Socket successfully initialised at %s\n", address)
-	}
-	serv.Conn = conn
-	return nil
-}
-
-func (serv *GameServer) CloseSocket() {
-	if serv.Conn != nil {
-		serv.Conn.Close()
-	}
 }
 
 func (serv *GameServer) Start() {

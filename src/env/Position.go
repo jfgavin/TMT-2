@@ -1,5 +1,7 @@
 package env
 
+import "sort"
+
 type Position struct {
 	X, Y int
 }
@@ -50,33 +52,53 @@ func (pos *Position) GetAdjacent() []Position {
 	}
 }
 
-func (pos *Position) GetNextStep(target Position) Position {
-	// Optimised next-step movement from pos to approach target
-	step := *pos
+func (pos *Position) GetScoredNextSteps(target Position) []Position {
+	// Store baseline (waiting)
+	baseScore := pos.ManhatDist(target)
 
-	dx := target.X - pos.X
-	dy := target.Y - pos.Y
-
-	dxAbs := max(dx, -dx)
-	dyAbs := max(dy, -dy)
-
-	if dx == 0 && dy == 0 {
-		return step
+	type scoredStep struct {
+		pos   Position
+		score int
 	}
 
-	if dxAbs >= dyAbs {
-		if dx > 0 {
-			step.X++
-		} else {
-			step.X--
-		}
-	} else {
-		if dy > 0 {
-			step.Y++
-		} else {
-			step.Y--
+	steps := make([]scoredStep, 0, 5)
+
+	// Waiting is always a candidate
+	steps = append(steps, scoredStep{
+		pos:   *pos,
+		score: baseScore,
+	})
+
+	// Adjacent moves
+	for _, adj := range pos.GetAdjacent() {
+		score := adj.ManhatDist(target)
+
+		// Drop anything worse than waiting
+		if score <= baseScore {
+			steps = append(steps, scoredStep{
+				pos:   adj,
+				score: score,
+			})
 		}
 	}
 
-	return step
+	// Sort best → worst
+	sort.Slice(steps, func(i, j int) bool {
+		if steps[i].score != steps[j].score {
+			return steps[i].score < steps[j].score
+		}
+		// Stable tie-breaker (important to avoid oscillation)
+		if steps[i].pos.X != steps[j].pos.X {
+			return steps[i].pos.X < steps[j].pos.X
+		}
+		return steps[i].pos.Y < steps[j].pos.Y
+	})
+
+	// Strip scores
+	result := make([]Position, len(steps))
+	for i, s := range steps {
+		result[i] = s.pos
+	}
+
+	return result
 }

@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/jfgavin/TMT-2/src/env"
@@ -56,8 +57,31 @@ func (tmta *TMTAgent) getTargetPos() env.Position {
 	return tmta.env.TilePos(tmta.getTargetTile())
 }
 
+func (tmta *TMTAgent) getUnobstructedBestStep() env.Position {
+	target := tmta.getTargetPos()
+	nextSteps := tmta.Pos.GetScoredNextSteps(target)
+
+	for _, step := range nextSteps {
+
+		obstructed := false
+		for _, obstruction := range tmta.obstructions {
+			if step.X == obstruction.X && step.Y == obstruction.Y {
+				obstructed = true
+				break
+			}
+		}
+		if !obstructed {
+			return step
+		}
+	}
+	fmt.Printf("\tBlocked! Not moving...\n")
+	return tmta.Pos
+}
+
 func (tmta *TMTAgent) Move() {
-	targetPos := tmta.getTargetPos()
-	nextPos := tmta.Pos.GetNextStep(targetPos)
-	tmta.Pos = nextPos
+	tmta.Pos = tmta.getUnobstructedBestStep()
+}
+
+func (tmta *TMTAgent) HandleObstructionMessage(msg *ObstructionMessage) {
+	tmta.obstructions = append(tmta.obstructions, msg.Pos)
 }
