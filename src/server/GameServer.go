@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 	"os"
 	"time"
@@ -15,9 +14,10 @@ import (
 
 type GameServer struct {
 	*server.BaseServer[agent.ITMTAgent]
-	cfg  config.ServerConfig
-	Env  *env.Environment
-	Conn net.Conn
+	cfg   config.ServerConfig
+	agCfg config.AgentConfig
+	Env   *env.Environment
+	Conn  net.Conn
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
@@ -49,14 +49,11 @@ func NewGameServer(cfg config.Config) *GameServer {
 		BaseServer: server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
 		Env:        env.NewEnvironment(cfg.Env),
 		cfg:        cfg.Serv,
+		agCfg:      cfg.Agent, // Stored for spawning more agents later
 	}
 
-	for i := 0; i < cfg.Serv.NumAgents; i++ {
-		pos := env.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
-
-		ga := agent.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
-		serv.AddAgent(ga)
-	}
+	// Add agents
+	serv.IntroduceAgents()
 
 	// set GameRunner to bind RunTurn to BaseServer
 	serv.SetGameRunner(serv)
