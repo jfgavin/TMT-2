@@ -1,11 +1,9 @@
 package server
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/jfgavin/TMT-2/src/agent"
-	"github.com/jfgavin/TMT-2/src/env"
 )
 
 func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
@@ -23,8 +21,7 @@ func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
 	return agents
 }
 
-func (serv *GameServer) EstablishInitialObstructions() {
-	// Clear agent stored obstructions, then establish current positions
+func (serv *GameServer) DrainAgents() {
 	for _, ag := range serv.GetAgentMap() {
 		ag.ClearObstructions()
 	}
