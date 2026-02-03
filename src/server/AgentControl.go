@@ -1,9 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/jfgavin/TMT-2/src/agent"
+	"github.com/jfgavin/TMT-2/src/env"
 )
 
 func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
