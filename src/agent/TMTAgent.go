@@ -12,9 +12,8 @@ type TMTAgent struct {
 	env                         env.IEnvironment
 	Name                        string
 	Pos                         env.Position
-	obstructions                []env.Position
+	obstructions                map[env.Position]struct{}
 	Energy                      int
-	percetiveRange              int
 }
 
 func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {
@@ -26,7 +25,7 @@ func (tmta *TMTAgent) GetEnergy() int {
 }
 
 func (tmta *TMTAgent) ClearObstructions() {
-	tmta.obstructions = nil
+	tmta.obstructions = make(map[env.Position]struct{})
 }
 
 func (tmta *TMTAgent) BroadcastPosition() {
@@ -41,16 +40,13 @@ func (tmta *TMTAgent) PlayTurn() {
 		return
 	}
 
-	nextStep := tmta.getUnobstructedBestStep()
-
 	if currTile.GetResources() > 0 {
 		tmta.HarvestResources()
 	} else {
-		tmta.Pos = nextStep
-		msg := tmta.NewObstructionMessage(nextStep)
-		tmta.BroadcastSynchronousMessage(msg)
+		tmta.Move()
 	}
 
+	// Make sure to signal messaging done after turn
 	tmta.SignalMessagingComplete()
 }
 

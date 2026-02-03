@@ -21,7 +21,8 @@ func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
 	return agents
 }
 
-func (serv *GameServer) DrainAgents() {
+func (serv *GameServer) EstablishInitialObstructions() {
+	// Clear agent stored obstructions, then establish current positions
 	for _, ag := range serv.GetAgentMap() {
 		ag.ClearObstructions()
 	}
