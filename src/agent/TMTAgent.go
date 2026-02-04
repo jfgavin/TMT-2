@@ -12,6 +12,7 @@ type TMTAgent struct {
 	env                         env.IEnvironment
 	Name                        string
 	Pos                         env.Position
+	Target                      env.Position
 	obstructions                map[env.Position]struct{}
 	Energy                      int
 }
@@ -34,8 +35,10 @@ func (tmta *TMTAgent) BroadcastPosition() {
 }
 
 func (tmta *TMTAgent) PlayTurn() {
+
+	// Always try to harvest resources, then move if that fails
 	if !tmta.HarvestResources() {
-		tmta.TargetedMove()
+		tmta.Move()
 	}
 
 	// Make sure to signal messaging done after turn

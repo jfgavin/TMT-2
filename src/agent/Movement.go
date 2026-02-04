@@ -13,7 +13,7 @@ func (tmta *TMTAgent) SetPosAndBroadcast(pos env.Position) {
 }
 
 // Returns all positions with Manhattan distance <= agent's visual range
-func (tmta *TMTAgent) GetVisible() []env.Position {
+func (tmta *TMTAgent) VisiblePositions() []env.Position {
 	pos := tmta.Pos
 	visMax := tmta.cfg.VisualRange
 
@@ -35,8 +35,20 @@ func (tmta *TMTAgent) GetVisible() []env.Position {
 	return out
 }
 
+func (tmta *TMTAgent) IsReachable(target env.Position) bool {
+	path := tmta.Pos.GreedyPath(target)
+
+	// Walk path and check unobstructed
+	for _, step := range path {
+		if step.IsObstructed(tmta.obstructions) {
+			return false
+		}
+	}
+	return true
+}
+
 // Random move to one of the unobstructed adjascent cells, if possible
-func (tmta *TMTAgent) ExploreMove() {
+func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 	adj := tmta.Pos.GetAdjacent()
 
 	// Shuffle adjascent positions
@@ -46,38 +58,50 @@ func (tmta *TMTAgent) ExploreMove() {
 
 	for _, pos := range adj {
 		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(tmta.env.GridSize()) {
-			tmta.SetPosAndBroadcast(pos)
-			return
+			return pos, true
 		}
 	}
+
+	return tmta.Pos, false
 }
 
-// Move towards the unobstructed cell with most resources
-func (tmta *TMTAgent) TargetedMove() {
-	locals := tmta.GetVisible()
-
+// Returns reachable position with highest utility (resources / dist + 1)
+func (tmta *TMTAgent) GetBestTarget() (env.Position, bool) {
+	locals := tmta.VisiblePositions()
 	startPos := tmta.Pos
+
 	bestTarget := startPos
-	bestUtility := 0
+	bestUtility := 0.0
 
 	for _, target := range locals {
 		tile, ok := tmta.env.GetTile(target)
 		if !ok {
-			return
+			continue
 		}
 		dist := startPos.ManhatDist(target)
-		tileUtility := tile.GetResources() / (dist + 1)
-		if tileUtility > bestUtility && !target.IsObstructed(tmta.obstructions) {
+		tileUtility := float64(tile.GetResources()) / float64(dist+1)
+		if tileUtility > bestUtility && tmta.IsReachable(target) {
 			bestTarget = target
 			bestUtility = tileUtility
 		}
 	}
 
-	// If the best unobstructed position has resources, move a step towards it, else, explore
-	if bestUtility > 0 {
-		nextStep := startPos.UnobstructedNextStep(bestTarget, tmta.obstructions)
-		tmta.SetPosAndBroadcast(nextStep)
+	return bestTarget, bestUtility > 0
+}
+
+// Try to move to resources, otherwise explore, otherwise stand still
+func (tmta *TMTAgent) Move() {
+	tmta.Target = env.Position{}
+	step := tmta.Pos
+
+	if best, ok := tmta.GetBestTarget(); ok {
+		step = tmta.Pos.GreedyNextStep(best)
+		tmta.Target = best
+	} else if randStep, ok := tmta.GetRandomStep(); ok {
+		step = randStep
 	} else {
-		tmta.ExploreMove()
+		return
 	}
+
+	tmta.SetPosAndBroadcast(step)
 }
