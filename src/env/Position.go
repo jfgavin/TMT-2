@@ -4,79 +4,77 @@ type Position struct {
 	X, Y int
 }
 
-func (posA *Position) ManhatDist(posB Position) int {
-	x := posA.X - posB.X
-	y := posA.Y - posB.Y
-
-	x_abs := max(x, -x)
-	y_abs := max(y, -y)
-
-	return x_abs + y_abs
-}
-
-func (pos *Position) LocalPositions(maxDist int) []Position {
-	// Returns circle of positions within maxDist Manhattan distance
-	localPositions := make([]Position, 0)
-	for y := -maxDist; y <= maxDist; y++ {
-		for x := -maxDist; x <= maxDist; x++ {
-			localPos := Position{X: x, Y: y}
-			if pos.ManhatDist(localPos) <= maxDist {
-				localPositions = append(localPositions, localPos)
-			}
-		}
+func abs(x int) int {
+	if x < 0 {
+		return -x
 	}
-	return localPositions
+	return x
 }
 
-func (pos *Position) GetAdjacent() []Position {
-	// Returns list of adjascent positions
-	return []Position{
-		{
-			X: pos.X + 1,
-			Y: pos.Y,
-		},
-		{
-			X: pos.X - 1,
-			Y: pos.Y,
-		},
-		{
-			X: pos.X,
-			Y: pos.Y + 1,
-		},
-		{
-			X: pos.X,
-			Y: pos.Y - 1,
-		},
+func (a Position) ManhatDist(b Position) int {
+	return abs(a.X-b.X) + abs(a.Y-b.Y)
+}
+
+func (pos Position) IsBounded(upperBound int) bool {
+	return pos.X >= 0 && pos.X < upperBound && pos.Y >= 0 && pos.Y < upperBound
+}
+
+func (pos Position) Bound(upperBound int) {
+	if pos.X < 0 {
+		pos.X = 0
+	} else if pos.X > upperBound {
+		pos.X = upperBound
+	}
+
+	if pos.Y < 0 {
+		pos.Y = 0
+	} else if pos.Y > upperBound {
+		pos.Y = upperBound
 	}
 }
 
-func (pos *Position) GetNextStep(target Position) Position {
-	// Optimised next-step movement from pos to approach target
-	step := *pos
-
-	dx := target.X - pos.X
-	dy := target.Y - pos.Y
-
-	dxAbs := max(dx, -dx)
-	dyAbs := max(dy, -dy)
-
-	if dx == 0 && dy == 0 {
-		return step
+func (pos Position) GetAdjacent() [4]Position {
+	return [4]Position{
+		{pos.X + 1, pos.Y},
+		{pos.X - 1, pos.Y},
+		{pos.X, pos.Y + 1},
+		{pos.X, pos.Y - 1},
 	}
+}
 
-	if dxAbs >= dyAbs {
-		if dx > 0 {
-			step.X++
-		} else {
-			step.X--
-		}
-	} else {
-		if dy > 0 {
-			step.Y++
-		} else {
-			step.Y--
+// Greedily get next position which reduces Manhattan distance to target
+func (pos Position) GreedyNextStep(target Position) Position {
+	nextStep := pos
+	remDist := pos.ManhatDist(target)
+	bestRemDist := remDist
+
+	for _, adj := range pos.GetAdjacent() {
+		dist := adj.ManhatDist(target)
+		if dist < bestRemDist {
+			nextStep = adj
+			bestRemDist = dist
 		}
 	}
+	return nextStep
+}
 
-	return step
+// Concatenate greedy steps to make a path to target
+func (pos Position) GreedyPath(target Position) []Position {
+	dist := pos.ManhatDist(target)
+	path := make([]Position, 0, dist)
+
+	current := pos
+	path = append(path, current)
+
+	for current != target {
+		current = current.GreedyNextStep(target)
+		path = append(path, current)
+	}
+
+	return path
+}
+
+func (pos Position) IsObstructed(obstructions map[Position]struct{}) bool {
+	_, blocked := obstructions[pos]
+	return blocked
 }

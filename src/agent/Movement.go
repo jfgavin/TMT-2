@@ -1,63 +1,107 @@
 package agent
 
 import (
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
-func (tmta *TMTAgent) getPercievedTiles() []*env.Tile {
-	percievedTiles := make([]*env.Tile, 0)
+// Update position, and broadcast this new obstruction to all other agents
+func (tmta *TMTAgent) SetPosAndBroadcast(pos env.Position) {
+	tmta.Pos = pos
+	tmta.BroadcastPosition()
+}
 
-	for y, row := range tmta.env.GetGrid() {
-		for x, tile := range row {
-			tilePos := env.Position{X: x, Y: y}
-			if tmta.Pos.ManhatDist(tilePos) <= tmta.cfg.PerceptiveRange {
-				percievedTiles = append(percievedTiles, tile)
+// Returns all positions with Manhattan distance <= agent's visual range
+func (tmta *TMTAgent) VisiblePositions() []env.Position {
+	pos := tmta.Pos
+	visMax := tmta.cfg.VisualRange
+
+	capacity := 1 + 2*visMax*(visMax+1)
+	out := make([]env.Position, 0, capacity)
+
+	for dy := -visMax; dy <= visMax; dy++ {
+		limit := visMax - max(dy, -dy)
+		for dx := -limit; dx <= limit; dx++ {
+			local := env.Position{
+				X: pos.X + dx,
+				Y: pos.Y + dy,
+			}
+			if local.IsBounded(tmta.env.GridSize()) {
+				out = append(out, local)
 			}
 		}
 	}
-
-	return percievedTiles
+	return out
 }
 
-func (tmta *TMTAgent) getRandAdjTile() *env.Tile {
-	adjPositions := tmta.Pos.GetAdjacent()
+func (tmta *TMTAgent) IsReachable(target env.Position) bool {
+	path := tmta.Pos.GreedyPath(target)
 
-	validTiles := make([]*env.Tile, 0, len(adjPositions))
-	for _, pos := range adjPositions {
-		if tile, found := tmta.env.GetTile(pos); found {
-			validTiles = append(validTiles, tile)
+	// Walk path and check unobstructed
+	for _, step := range path {
+		if step.IsObstructed(tmta.obstructions) {
+			return false
+		}
+	}
+	return true
+}
+
+// Random move to one of the unobstructed adjascent cells, if possible
+func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
+	adj := tmta.Pos.GetAdjacent()
+
+	// Shuffle adjascent positions
+	rand.Shuffle(len(adj), func(i, j int) {
+		adj[i], adj[j] = adj[j], adj[i]
+	})
+
+	for _, pos := range adj {
+		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(tmta.env.GridSize()) {
+			return pos, true
 		}
 	}
 
-	if len(validTiles) == 0 {
-		return nil
-	}
-
-	return validTiles[rand.Intn(len(validTiles))]
+	return tmta.Pos, false
 }
 
-func (tmta *TMTAgent) getTargetTile() *env.Tile {
-	bestTile := tmta.getRandAdjTile()
-	bestUtility := 0
-	for _, tile := range tmta.getPercievedTiles() {
-		utility := tile.Resources
-		if utility > bestUtility {
-			bestUtility = utility
-			bestTile = tile
+// Returns reachable position with highest utility (resources / dist + 1)
+func (tmta *TMTAgent) GetBestTarget() (env.Position, bool) {
+	locals := tmta.VisiblePositions()
+	startPos := tmta.Pos
+
+	bestTarget := startPos
+	bestUtility := 0.0
+
+	for _, target := range locals {
+		tile, ok := tmta.env.GetTile(target)
+		if !ok {
+			continue
+		}
+		dist := startPos.ManhatDist(target)
+		tileUtility := float64(tile.GetResources()) / float64(dist+1)
+		if tileUtility > bestUtility && tmta.IsReachable(target) {
+			bestTarget = target
+			bestUtility = tileUtility
 		}
 	}
 
-	return bestTile
+	return bestTarget, bestUtility > 0
 }
 
-func (tmta *TMTAgent) getTargetPos() env.Position {
-	return tmta.env.TilePos(tmta.getTargetTile())
-}
-
+// Try to move to resources, otherwise explore, otherwise stand still
 func (tmta *TMTAgent) Move() {
-	targetPos := tmta.getTargetPos()
-	nextPos := tmta.Pos.GetNextStep(targetPos)
-	tmta.Pos = nextPos
+	tmta.Target = env.Position{}
+	step := tmta.Pos
+
+	if best, ok := tmta.GetBestTarget(); ok {
+		step = tmta.Pos.GreedyNextStep(best)
+		tmta.Target = best
+	} else if randStep, ok := tmta.GetRandomStep(); ok {
+		step = randStep
+	} else {
+		return
+	}
+
+	tmta.SetPosAndBroadcast(step)
 }

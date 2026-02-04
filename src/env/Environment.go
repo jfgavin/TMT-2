@@ -7,24 +7,19 @@ import (
 	"github.com/jfgavin/TMT-2/src/config"
 )
 
-// === Environment Type ===
-
 type Environment struct {
 	cfg  config.EnvironmentConfig
-	Grid [][]*Tile
+	Grid [][]Tile
 }
 
 func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
 	env := &Environment{
 		cfg:  cfg,
-		Grid: make([][]*Tile, cfg.GridSize),
+		Grid: make([][]Tile, cfg.GridSize),
 	}
 
 	for y := range env.Grid {
-		env.Grid[y] = make([]*Tile, cfg.GridSize)
-	}
-
-	for y := range env.Grid {
+		env.Grid[y] = make([]Tile, cfg.GridSize)
 		for x := range env.Grid[y] {
 			env.Grid[y][x] = NewTile(0)
 		}
@@ -33,82 +28,36 @@ func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
 	return env
 }
 
-// === Environment Methods ===
-
-func (env *Environment) GetGrid() [][]*Tile {
-	return env.Grid
+func (env *Environment) GridSize() int {
+	return env.cfg.GridSize
 }
 
-func (env *Environment) TilePos(tile *Tile) Position {
-	for y := range env.Grid {
-		for x := range env.Grid[y] {
-			if env.Grid[y][x] == tile {
-				return Position{X: x, Y: y}
-			}
-		}
+func (env *Environment) GetTile(pos Position) (Tile, bool) {
+	if pos.Y < 0 || pos.Y >= len(env.Grid) {
+		return Tile{}, false
 	}
-	return Position{}
+	row := env.Grid[pos.Y]
+
+	if pos.X < 0 || pos.X >= len(row) {
+		return Tile{}, false
+	}
+
+	return row[pos.X], true
 }
 
-func (env *Environment) GetTile(pos Position) (*Tile, bool) {
-	if pos.Y < 0 || pos.Y >= env.cfg.GridSize {
-		return nil, false
+func (env *Environment) ChangeResources(pos Position, delta int) bool {
+	if pos.IsBounded(env.GridSize()) {
+		env.Grid[pos.Y][pos.X].ChangeResources(delta)
+		return true
 	}
-
-	if pos.X < 0 || pos.X >= env.cfg.GridSize {
-		return nil, false
-	}
-
-	tile := env.Grid[pos.Y][pos.X]
-	if tile != nil {
-		return tile, true
-	}
-
-	return nil, false
-}
-
-func (env *Environment) LocalTiles(tile *Tile, radius int) []*Tile {
-	circledTiles := make([]*Tile, 0)
-	tilePos := env.TilePos(tile)
-	for _, localPos := range tilePos.LocalPositions(radius) {
-		localTile, found := env.GetTile(localPos)
-		if found {
-			circledTiles = append(circledTiles, localTile)
-		}
-	}
-	return circledTiles
-}
-
-func (env *Environment) GetRandPos() Position {
-	return Position{
-		X: rand.Intn(env.cfg.GridSize),
-		Y: rand.Intn(env.cfg.GridSize),
-	}
+	return false
 }
 
 func (env *Environment) GetRandPosPadded(padding int) Position {
 	return Position{
-		X: rand.Intn(env.cfg.GridSize-padding) + padding,
-		Y: rand.Intn(env.cfg.GridSize-padding) + padding,
+		X: rand.Intn(env.GridSize()-padding) + padding,
+		Y: rand.Intn(env.GridSize()-padding) + padding,
 	}
-}
-
-func (env *Environment) BoundPos(pos Position) Position {
-	upperBound := env.cfg.GridSize - 1
-
-	if pos.X < 0 {
-		pos.X = 0
-	} else if pos.X > upperBound {
-		pos.X = upperBound
-	}
-
-	if pos.Y < 0 {
-		pos.Y = 0
-	} else if pos.Y > upperBound {
-		pos.Y = upperBound
-	}
-
-	return pos
 }
 
 func (env *Environment) IntroduceResources() {
@@ -144,16 +93,14 @@ func (env *Environment) IntroduceResources() {
 		x := float64(chosenCentre.X) + dist*math.Cos(theta)
 		y := float64(chosenCentre.Y) + dist*math.Sin(theta)
 
-		newPos := env.BoundPos(Position{
+		newPos := Position{
 			X: int(math.Round(x)),
 			Y: int(math.Round(y)),
-		})
+		}
+		newPos.Bound(env.GridSize())
 
 		// Modify tile
-		tile, found := env.GetTile(newPos)
-
-		if found {
-			tile.ChangeResources(1)
+		if ok := env.ChangeResources(newPos, 1); ok {
 			cfg.ResourceCount--
 		}
 	}

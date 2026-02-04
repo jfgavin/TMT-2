@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 
 	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
@@ -12,7 +13,7 @@ import (
 type GameState struct {
 	Iteration int
 	Turn      int
-	Grid      [][]*env.Tile
+	Grid      [][]env.Tile
 	Agents    map[uuid.UUID]agent.ITMTAgent
 }
 
@@ -38,4 +39,22 @@ func StreamGameIteration(serv *GameServer, iteration, turn int) error {
 
 	_, err = serv.Conn.Write(append(data, '\n'))
 	return err
+}
+
+// Websocket
+func (serv *GameServer) InitSocket(address string) error {
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		return fmt.Errorf("failed to connect to Python: %w", err)
+	} else {
+		fmt.Printf("Socket successfully initialised at %s\n", address)
+	}
+	serv.Conn = conn
+	return nil
+}
+
+func (serv *GameServer) CloseSocket() {
+	if serv.Conn != nil {
+		serv.Conn.Close()
+	}
 }

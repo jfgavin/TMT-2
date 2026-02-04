@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 	"os"
 	"time"
@@ -15,14 +14,15 @@ import (
 
 type GameServer struct {
 	*server.BaseServer[agent.ITMTAgent]
-	cfg  config.ServerConfig
-	Env  *env.Environment
-	Conn net.Conn
+	cfg   config.ServerConfig
+	agCfg config.AgentConfig
+	Env   *env.Environment
+	Conn  net.Conn
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
-	serv.ElimDrainedAgents()
-	for _, ag := range serv.GetAgentMap() {
+	serv.EstablishInitialObstructions()
+	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
@@ -34,40 +34,13 @@ func (serv *GameServer) RunStartOfIteration(int) {
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {
-	serv.RunMessagingTurn()
-}
 
-// make all agents message
-func (serv *GameServer) RunMessagingTurn() {
-	// Let agents signal they're ready for communication
-	for _, gc := range serv.GetAgentMap() {
-		gc.DoMessaging()
-	}
-}
-
-// Socket
-func (serv *GameServer) InitSocket(address string) error {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return fmt.Errorf("failed to connect to Python: %w", err)
-	} else {
-		fmt.Printf("Socket successfully initialised at %s\n", address)
-	}
-	serv.Conn = conn
-	return nil
-}
-
-func (serv *GameServer) CloseSocket() {
-	if serv.Conn != nil {
-		serv.Conn.Close()
-	}
 }
 
 func (serv *GameServer) Start() {
 	serv.BaseServer.Start()
 
-	// Post-game functionality can go here
-	fmt.Println("Game Over!")
+	fmt.Println("Simulation Over!")
 	serv.CloseSocket()
 }
 
@@ -76,14 +49,11 @@ func NewGameServer(cfg config.Config) *GameServer {
 		BaseServer: server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
 		Env:        env.NewEnvironment(cfg.Env),
 		cfg:        cfg.Serv,
+		agCfg:      cfg.Agent, // Stored for spawning more agents later
 	}
 
-	for i := 0; i < cfg.Serv.NumAgents; i++ {
-		pos := env.Position{X: rand.Intn(cfg.Env.GridSize), Y: rand.Intn(cfg.Env.GridSize)}
-
-		ga := agent.NewTMTAgent(serv, cfg.Agent, serv.Env, fmt.Sprintf("Agent %d", i), pos)
-		serv.AddAgent(ga)
-	}
+	// Add agents
+	serv.IntroduceAgents()
 
 	// set GameRunner to bind RunTurn to BaseServer
 	serv.SetGameRunner(serv)
