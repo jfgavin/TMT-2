@@ -28,13 +28,8 @@ func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
 	return env
 }
 
-// === Environment Methods ===
 func (env *Environment) GridSize() int {
 	return env.cfg.GridSize
-}
-
-func (env *Environment) GetGrid() [][]*Tile {
-	return env.Grid
 }
 
 func (env *Environment) GetTile(pos Position) (Tile, bool) {
