@@ -42,43 +42,39 @@ func (pos Position) GetAdjacent() [4]Position {
 	}
 }
 
-func (pos Position) GetScoredNextSteps(target Position) []Position {
-	base := pos.ManhatDist(target)
-
-	// Worst case: No step + 4 adj
-	out := make([]Position, 0, 5)
-
-	bestScore := base
-
-	// Always allow no step
-	out = append(out, pos)
+// Greedily get next position which reduces Manhattan distance to target
+func (pos Position) GreedyNextStep(target Position) Position {
+	nextStep := pos
+	remDist := pos.ManhatDist(target)
+	bestRemDist := remDist
 
 	for _, adj := range pos.GetAdjacent() {
-		score := adj.ManhatDist(target)
-
-		if score < bestScore {
-			// Found strictly better move, so reset list
-			bestScore = score
-			out = out[:0]
-			out = append(out, adj)
-		} else if score == bestScore {
-			out = append(out, adj)
+		dist := adj.ManhatDist(target)
+		if dist < bestRemDist {
+			nextStep = adj
+			bestRemDist = dist
 		}
 	}
+	return nextStep
+}
 
-	return out
+// Concatenate greedy steps to make a path to target
+func (pos Position) GreedyPath(target Position) []Position {
+	dist := pos.ManhatDist(target)
+	path := make([]Position, 0, dist)
+
+	current := pos
+	path = append(path, current)
+
+	for current != target {
+		current = current.GreedyNextStep(target)
+		path = append(path, current)
+	}
+
+	return path
 }
 
 func (pos Position) IsObstructed(obstructions map[Position]struct{}) bool {
 	_, blocked := obstructions[pos]
 	return blocked
-}
-
-func (pos Position) UnobstructedNextStep(target Position, obstructions map[Position]struct{}) Position {
-	for _, step := range pos.GetScoredNextSteps(target) {
-		if !step.IsObstructed(obstructions) {
-			return step
-		}
-	}
-	return pos // No step
 }
