@@ -47,7 +47,8 @@ func (env *Environment) AddClusterResources(id uuid.UUID, amt int) bool {
 		}
 
 		// Modify tile
-		if ok := env.ChangeResources(newPos, 1); ok {
+		if tile, ok := env.GetTile(newPos); ok {
+			tile.AddResources(id, 1)
 			amt--
 		}
 	}

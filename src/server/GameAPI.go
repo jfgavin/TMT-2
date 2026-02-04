@@ -13,7 +13,7 @@ import (
 type GameState struct {
 	Iteration int
 	Turn      int
-	Grid      [][]env.Tile
+	Grid      [][]*env.Tile
 	Agents    map[uuid.UUID]agent.ITMTAgent
 }
 

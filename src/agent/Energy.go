@@ -13,10 +13,10 @@ func (tmta *TMTAgent) HarvestResources() bool {
 		return false
 	} else if available < yield {
 		// Add all available resources to agent as energy, and subtract from the tile
-		tmta.env.ChangeResources(tmta.Pos, -available)
+		tile.DrainResources(available)
 		tmta.ChangeEnergy(available)
 	} else {
-		tmta.env.ChangeResources(tmta.Pos, -yield)
+		tile.DrainResources(yield)
 		tmta.ChangeEnergy(yield)
 	}
 
