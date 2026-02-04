@@ -1,5 +1,7 @@
 package env
 
+import "math"
+
 type Position struct {
 	X, Y int
 }
@@ -9,6 +11,10 @@ func abs(x int) int {
 		return -x
 	}
 	return x
+}
+
+func (a Position) EuclidDist(b Position) float64 {
+	return math.Sqrt(math.Pow(math.Abs(float64(a.X-b.X)), 2) + math.Pow(math.Abs(float64(a.Y-b.Y)), 2))
 }
 
 func (a Position) ManhatDist(b Position) int {

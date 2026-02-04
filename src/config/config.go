@@ -45,10 +45,10 @@ func NewConfig() Config {
 		Env: EnvironmentConfig{
 			GridSize: 64,
 			Resources: ResourceConfig{
-				ResourceCount: 100,
-				ClusterCount:  4,
-				Radius:        5,
-				Lambda:        4,
+				ResourceCount: 300,
+				ClusterCount:  3,
+				Radius:        4,
+				Lambda:        3,
 			},
 		},
 	}
