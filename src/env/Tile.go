@@ -4,13 +4,13 @@ type Tile struct {
 	Resources int
 }
 
-func NewTile(resources int) *Tile {
-	return &Tile{
+func NewTile(resources int) Tile {
+	return Tile{
 		Resources: resources,
 	}
 }
 
-func (tile *Tile) GetResources() int {
+func (tile Tile) GetResources() int {
 	return tile.Resources
 }
 

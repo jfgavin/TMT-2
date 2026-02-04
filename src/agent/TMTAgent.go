@@ -34,16 +34,8 @@ func (tmta *TMTAgent) BroadcastPosition() {
 }
 
 func (tmta *TMTAgent) PlayTurn() {
-	currTile, found := tmta.env.GetTile(tmta.Pos)
-	if !found {
-		// Agent is not on grid. Just exit
-		return
-	}
-
-	if currTile.GetResources() > 0 {
-		tmta.HarvestResources()
-	} else {
-		tmta.Move()
+	if !tmta.HarvestResources() {
+		tmta.TargetedMove()
 	}
 
 	// Make sure to signal messaging done after turn

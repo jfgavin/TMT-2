@@ -15,22 +15,22 @@ func (a Position) ManhatDist(b Position) int {
 	return abs(a.X-b.X) + abs(a.Y-b.Y)
 }
 
-// Diamond (Manhattan ball) around pos
-func (pos Position) LocalPositions(maxDist int) []Position {
-	capacity := 1 + 2*maxDist*(maxDist+1)
-	out := make([]Position, 0, capacity)
+func (pos Position) IsBounded(upperBound int) bool {
+	return pos.X >= 0 && pos.X < upperBound && pos.Y >= 0 && pos.Y < upperBound
+}
 
-	for dy := -maxDist; dy <= maxDist; dy++ {
-		limit := maxDist - abs(dy)
-		for dx := -limit; dx <= limit; dx++ {
-			local := Position{
-				X: pos.X + dx,
-				Y: pos.Y + dy,
-			}
-			out = append(out, local)
-		}
+func (pos Position) Bound(upperBound int) {
+	if pos.X < 0 {
+		pos.X = 0
+	} else if pos.X > upperBound {
+		pos.X = upperBound
 	}
-	return out
+
+	if pos.Y < 0 {
+		pos.Y = 0
+	} else if pos.Y > upperBound {
+		pos.Y = upperBound
+	}
 }
 
 func (pos Position) GetAdjacent() [4]Position {
@@ -69,9 +69,14 @@ func (pos Position) GetScoredNextSteps(target Position) []Position {
 	return out
 }
 
+func (pos Position) IsObstructed(obstructions map[Position]struct{}) bool {
+	_, blocked := obstructions[pos]
+	return blocked
+}
+
 func (pos Position) UnobstructedNextStep(target Position, obstructions map[Position]struct{}) Position {
 	for _, step := range pos.GetScoredNextSteps(target) {
-		if _, blocked := obstructions[step]; !blocked {
+		if !step.IsObstructed(obstructions) {
 			return step
 		}
 	}
