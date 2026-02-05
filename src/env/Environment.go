@@ -10,14 +10,14 @@ import (
 type Environment struct {
 	cfg      config.EnvironmentConfig
 	Grid     [][]*Tile
-	clusters map[uuid.UUID]Cluster
+	clusters map[uuid.UUID]*Cluster
 }
 
 func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
 	env := &Environment{
 		cfg:      cfg,
 		Grid:     make([][]*Tile, cfg.GridSize),
-		clusters: make(map[uuid.UUID]Cluster),
+		clusters: make(map[uuid.UUID]*Cluster),
 	}
 
 	for y := range env.Grid {

@@ -26,16 +26,31 @@ func (tile *Tile) GetResources() int {
 	return sum
 }
 
+func (tile *Tile) GetContributions(id uuid.UUID) (int, bool) {
+	cont, ok := tile.contributions[id]
+	return cont, ok
+}
+
 func (tile *Tile) RefreshResources() {
 	sum := 0
-	for _, amt := range tile.contributions {
-		sum += amt
+	for id, amt := range tile.contributions {
+		if amt > 0 {
+			sum += amt
+		} else {
+			// If no resources contributed by cluster id, delete the contribution entry
+			delete(tile.contributions, id)
+		}
 	}
 	tile.Resources = sum
 }
 
 func (tile *Tile) AddResources(source uuid.UUID, amt int) {
 	tile.contributions[source] += amt
+	tile.RefreshResources()
+}
+
+func (tile *Tile) SubResources(source uuid.UUID, amt int) {
+	tile.contributions[source] -= amt
 	tile.RefreshResources()
 }
 
