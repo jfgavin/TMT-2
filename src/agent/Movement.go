@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"math/rand/v2"
-
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
@@ -50,11 +48,6 @@ func (tmta *TMTAgent) IsReachable(target env.Position) bool {
 // Random move to one of the unobstructed adjascent cells, if possible
 func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 	adj := tmta.Pos.GetAdjacent()
-
-	// Shuffle adjascent positions
-	rand.Shuffle(len(adj), func(i, j int) {
-		adj[i], adj[j] = adj[j], adj[i]
-	})
 
 	for _, pos := range adj {
 		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(tmta.env.GridSize()) {

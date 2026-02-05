@@ -27,7 +27,7 @@ type ResourceConfig struct {
 	ResourceCount int
 	ClusterCount  int
 	Radius        int
-	Lambda        int
+	LambdaRatio   float64
 }
 
 func NewConfig() Config {
@@ -48,7 +48,7 @@ func NewConfig() Config {
 				ResourceCount: 300,
 				ClusterCount:  3,
 				Radius:        4,
-				Lambda:        3,
+				LambdaRatio:   0.5,
 			},
 		},
 	}
