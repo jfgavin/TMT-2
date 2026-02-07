@@ -1,12 +1,12 @@
 package config
 
 type Config struct {
-	Serv  ServerConfig
+	Serv  ServConfig
 	Agent AgentConfig
-	Env   EnvironmentConfig
+	Env   EnvConfig
 }
 
-type ServerConfig struct {
+type ServConfig struct {
 	Iterations int
 	Turns      int
 	NumAgents  int
@@ -18,12 +18,12 @@ type AgentConfig struct {
 	ResourceYield  int
 }
 
-type EnvironmentConfig struct {
+type EnvConfig struct {
 	GridSize  int
-	Resources ResourceConfig
+	Resources ResourcesConfig
 }
 
-type ResourceConfig struct {
+type ResourcesConfig struct {
 	ResourceCount int
 	ClusterCount  int
 	Radius        int
@@ -32,7 +32,7 @@ type ResourceConfig struct {
 
 func NewConfig() Config {
 	return Config{
-		Serv: ServerConfig{
+		Serv: ServConfig{
 			Iterations: 2,
 			Turns:      50,
 			NumAgents:  4,
@@ -42,9 +42,9 @@ func NewConfig() Config {
 			VisualRange:    20,
 			ResourceYield:  3,
 		},
-		Env: EnvironmentConfig{
-			GridSize: 64,
-			Resources: ResourceConfig{
+		Env: EnvConfig{
+			GridSize: 16,
+			Resources: ResourcesConfig{
 				ResourceCount: 300,
 				ClusterCount:  3,
 				Radius:        4,

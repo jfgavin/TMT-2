@@ -8,12 +8,12 @@ import (
 )
 
 type Environment struct {
-	cfg      config.EnvironmentConfig
+	cfg      config.EnvConfig
 	Grid     [][]*Tile
 	clusters map[uuid.UUID]*Cluster
 }
 
-func NewEnvironment(cfg config.EnvironmentConfig) *Environment {
+func NewEnvironment(cfg config.EnvConfig) *Environment {
 	env := &Environment{
 		cfg:      cfg,
 		Grid:     make([][]*Tile, cfg.GridSize),

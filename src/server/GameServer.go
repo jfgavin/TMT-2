@@ -14,7 +14,7 @@ import (
 
 type GameServer struct {
 	*server.BaseServer[agent.ITMTAgent]
-	cfg   config.ServerConfig
+	cfg   config.ServConfig
 	agCfg config.AgentConfig
 	Env   *env.Environment
 	Conn  net.Conn

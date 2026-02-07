@@ -1,0 +1,21 @@
+{
+  "Serv": {
+    "Iterations": 2,
+    "Turns": 50,
+    "NumAgents": 4
+  },
+  "Agent": {
+    "StartingEnergy": 25,
+    "VisualRange": 20,
+    "ResourceYield": 3
+  },
+  "Env": {
+    "GridSize": 16,
+    "Resources": {
+      "ResourceCount": 300,
+      "ClusterCount": 3,
+      "Radius": 4,
+      "LambdaRatio": 0.5
+    }
+  }
+}
