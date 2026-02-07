@@ -1,5 +1,7 @@
 package env
 
+import "math/rand"
+
 type Position struct {
 	X, Y int
 }
@@ -34,12 +36,19 @@ func (pos Position) Bound(upperBound int) {
 }
 
 func (pos Position) GetAdjacent() [4]Position {
-	return [4]Position{
+	adj := [4]Position{
 		{pos.X + 1, pos.Y},
 		{pos.X - 1, pos.Y},
 		{pos.X, pos.Y + 1},
 		{pos.X, pos.Y - 1},
 	}
+
+	// Shuffle it so that pathfinding varies on each run
+	rand.Shuffle(len(adj), func(i, j int) {
+		adj[i], adj[j] = adj[j], adj[i]
+	})
+
+	return adj
 }
 
 // Greedily get next position which reduces Manhattan distance to target

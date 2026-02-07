@@ -27,7 +27,7 @@ type ResourceConfig struct {
 	ResourceCount int
 	ClusterCount  int
 	Radius        int
-	Lambda        int
+	LambdaRatio   float64
 }
 
 func NewConfig() Config {
@@ -45,10 +45,10 @@ func NewConfig() Config {
 		Env: EnvironmentConfig{
 			GridSize: 64,
 			Resources: ResourceConfig{
-				ResourceCount: 100,
-				ClusterCount:  4,
-				Radius:        5,
-				Lambda:        4,
+				ResourceCount: 300,
+				ClusterCount:  3,
+				Radius:        4,
+				LambdaRatio:   0.5,
 			},
 		},
 	}

@@ -30,11 +30,9 @@ func (serv *GameServer) RunTurn(i, j int) {
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
-	serv.Env.IntroduceResources()
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {
-
 }
 
 func (serv *GameServer) Start() {
