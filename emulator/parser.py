@@ -49,6 +49,9 @@ class TMTParser():
 
         return states
 
+    def get_num_states(self):
+        return len(self.states)
+
     def get_state(self, index=0):
         return self.states[index]
 

@@ -21,6 +21,10 @@ type GameServer struct {
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
+	if len(serv.GetAgentMap()) <= 0 {
+		// Early return if no agents - don't stream game iteration
+		return
+	}
 	serv.EstablishInitialObstructions()
 	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()

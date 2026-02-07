@@ -3,6 +3,9 @@ import json
 from pathlib import Path
 
 CONF_DIR = Path(__file__).resolve().parent
+JSON_FILE = CONF_DIR / Path("config.json")
+GO_FILE = CONF_DIR / Path("config.go")
+
 INDENT = f"\t"
 
 # Map JSON types to Go types
@@ -84,13 +87,9 @@ def generate_constructor(obj):
     return lines
 
 def generate_config():
-
-    go_file = CONF_DIR / Path("config.go")
-    json_file = CONF_DIR / Path("config.json")
-
     print("Generating Go Config from JSON...")
 
-    with open(json_file) as f:
+    with open(JSON_FILE) as f:
         config = json.load(f)
 
     lines = ["package config", ""]
@@ -98,7 +97,7 @@ def generate_config():
     lines.extend(generate_struct("Config", config))
     lines.extend(generate_constructor(config))
 
-    with open(go_file, "w") as f:
+    with open(GO_FILE, "w") as f:
         f.write("\n".join(lines))
 
 
