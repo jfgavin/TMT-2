@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import json
-import sys
+from pathlib import Path
 
+CONF_DIR = Path(__file__).resolve().parent
 INDENT = f"\t"
 
 # Map JSON types to Go types
@@ -65,7 +66,7 @@ def generate_constructor_fields(obj, level):
             )
     return lines
 
-def generate_new_config(obj):
+def generate_constructor(obj):
     lines = [
         "func NewConfig() Config {",
         f"{INDENT}return Config{{",
@@ -82,13 +83,12 @@ def generate_new_config(obj):
     lines.append("")
     return lines
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: gen_config_struct.py config.json output.go")
-        sys.exit(1)
+def generate_config():
 
-    json_file = sys.argv[1]
-    go_file = sys.argv[2]
+    go_file = CONF_DIR / Path("config.go")
+    json_file = CONF_DIR / Path("config.json")
+
+    print("Generating Go Config from JSON...")
 
     with open(json_file) as f:
         config = json.load(f)
@@ -96,11 +96,14 @@ def main():
     lines = ["package config", ""]
 
     lines.extend(generate_struct("Config", config))
-    lines.extend(generate_new_config(config))
+    lines.extend(generate_constructor(config))
 
     with open(go_file, "w") as f:
         f.write("\n".join(lines))
 
+
+def main():
+    generate_config()
 
 if __name__ == "__main__":
     main()

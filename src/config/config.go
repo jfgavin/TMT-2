@@ -34,21 +34,21 @@ func NewConfig() Config {
 	return Config{
 		Serv: ServConfig{
 			Iterations: 2,
-			Turns:      50,
-			NumAgents:  4,
+			Turns     : 50,
+			NumAgents : 4,
 		},
 		Agent: AgentConfig{
 			StartingEnergy: 25,
-			VisualRange:    20,
-			ResourceYield:  3,
+			VisualRange   : 20,
+			ResourceYield : 3,
 		},
 		Env: EnvConfig{
-			GridSize: 16,
+			GridSize : 16,
 			Resources: ResourcesConfig{
 				ResourceCount: 300,
-				ClusterCount:  3,
-				Radius:        4,
-				LambdaRatio:   0.5,
+				ClusterCount : 3,
+				Radius       : 4,
+				LambdaRatio  : 0.5,
 			},
 		},
 	}
