@@ -3,7 +3,7 @@ package agent
 func (tmta *TMTAgent) HarvestResources() bool {
 	pos := tmta.Pos
 	available, ok := tmta.env.GetResources()[pos]
-	if !ok {
+	if !ok || available <= 0 {
 		return false
 	}
 	yield := tmta.cfg.ResourceYield

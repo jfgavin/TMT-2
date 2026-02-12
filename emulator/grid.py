@@ -7,6 +7,7 @@ class TMTGrid:
         self.parent = parent
         self.grid_size = gridSize
         self.agents = []
+        self.graves = []
 
         # Drawlist size will be set dynamically
         parent_width = dpg.get_item_width(parent)
@@ -61,23 +62,34 @@ class TMTGrid:
             except:
                 continue
 
+        cw, ch = self._get_cell_size()
+
         # Graves
+        for grave in self.graves:
+            dpg.delete_item(grave)
+        self.graves = []
+
         graves = state.get("Graves", [])        
         for grave in graves:
             pos = grave["Pos"]
-            x, y = pos["X"], pos["Y"]
-            dpg.configure_item(f"cell-{x}-{y}", fill=(0, 255, 0))
+            agx = (pos["X"] + 0.5) * cw
+            agy = (pos["Y"] + 0.5) * ch
+            radius = cw * 0.5
+
+            grave_circle = dpg.draw_circle(
+                (agx, agy),
+                radius,
+                fill=(0, 255, 255),
+                parent=self.drawlist_tag,
+            )
+            self.graves.append(grave_circle)
 
         # Agents
         for agent in self.agents:
             dpg.delete_item(agent)
+        self.agents = []
         
         agents = state.get("Agents", [])
-
-        if not len(agents):
-            return
-
-        cw, ch = self._get_cell_size()
 
         for uuid, agent in agents.items():
             pos = agent["Pos"]
