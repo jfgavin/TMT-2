@@ -2,8 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-PARENT = HERE.parent
+EMU_DIR = Path(__file__).resolve().parent
+PARENT = EMU_DIR.parent
 BIN_PATH = PARENT / "bin" / "tmt_bin"
 
 def build_go_binary():

@@ -2,10 +2,10 @@ import dearpygui.dearpygui as dpg
 import copy
 
 class TMTGrid:
-    def __init__(self, parent, initState):
+    def __init__(self, parent, gridSize, initState):
 
         self.parent = parent
-        self.cell_ids = []
+        self.grid_size = gridSize
         self.agents = []
 
         # Drawlist size will be set dynamically
@@ -22,70 +22,68 @@ class TMTGrid:
         self.draw_blank_grid(initState)
 
     def draw_blank_grid(self, state=None):
-        canvas_width = dpg.get_item_width(self.drawlist_tag)
-        canvas_height = dpg.get_item_height(self.drawlist_tag)
-        if canvas_width <= 0 or canvas_height <= 0:
-            return  # Skip drawing until valid
-
-        if state is not None and "Grid" in state:
-
-            grid = state.get("Grid", [])
-            self.GRID_SIZE = len(grid[0])
-            self._cell_content = [[{} for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
-
+        if state is not None:
+            gs = self.grid_size
 
             # Clear old rectangles
-            self.cell_ids.clear()
             dpg.delete_item(self.drawlist_tag, children_only=True)
 
             # Draw Grid
-            cell_width = canvas_width / self.GRID_SIZE
-            cell_height = canvas_height / self.GRID_SIZE
+            cw, ch = self._get_cell_size()
 
-            # Colour Resources
-            for y, row in enumerate(grid):
-                row_ids = []
-                for x, cell in enumerate(row):
-                    self._cell_content[y][x] = copy.deepcopy(cell)
-
-                    x0 = x * cell_width
-                    y0 = y * cell_height
-                    x1 = x0 + cell_width
-                    y1 = y0 + cell_height
-
-                    resources = cell.get("Resources", 0)
-                    rgba = (255, 255, 0, resources * 10)
+            for y in range(gs):
+                for x in range(gs):
+                    x0 = x * cw
+                    y0 = y * ch
+                    x1 = x0 + cw
+                    y1 = y0 + ch
 
                     cell_id = dpg.draw_rectangle(
                         (x0, y0), (x1, y1),
                         color=(0, 0, 0),
-                        fill=(255, 255, 0, resources*10),
                         parent=self.drawlist_tag,
                         tag=f"cell-{x}-{y}",
                     )
-                    row_ids.append(cell_id)
-                self.cell_ids.append(row_ids)
 
     def update_grid(self, state=None):
-        if state is None or "Grid" not in state:
+        if state is None:
             return
 
-        canvas_width = dpg.get_item_width(self.drawlist_tag)
-        canvas_height = dpg.get_item_height(self.drawlist_tag)
-        cell_width = canvas_width / self.GRID_SIZE
-        cell_height = canvas_height / self.GRID_SIZE
+        # Resources
+        resources = state.get("Resources", [])
 
-        # Redraw Agents
+        for entry in resources:
+            pos, amt = entry["Pos"], entry["Value"]
+            x, y = pos["X"], pos["Y"]
+            fill=(255, 255, 0, amt*10)
+            try:
+                dpg.configure_item(f"cell-{x}-{y}", fill=fill)
+            except:
+                continue
+
+        # Graves
+        graves = state.get("Graves", [])        
+        for grave in graves:
+            pos = grave["Pos"]
+            x, y = pos["X"], pos["Y"]
+            dpg.configure_item(f"cell-{x}-{y}", fill=(0, 255, 0))
+
+        # Agents
         for agent in self.agents:
             dpg.delete_item(agent)
-        self.agents.clear()
+        
+        agents = state.get("Agents", [])
 
-        freshAgents = state.get("Agents", {})
-        for uuid, agent in freshAgents.items():
+        if not len(agents):
+            return
+
+        cw, ch = self._get_cell_size()
+
+        for uuid, agent in agents.items():
             pos = agent["Pos"]
-            agx = (pos["X"] + 0.5) * cell_width
-            agy = (pos["Y"] + 0.5) * cell_height
-            radius = cell_width * 0.5
+            agx = (pos["X"] + 0.5) * cw
+            agy = (pos["Y"] + 0.5) * ch
+            radius = cw * 0.5
 
             agent_circle = dpg.draw_circle(
                 (agx, agy),
@@ -97,17 +95,6 @@ class TMTGrid:
 
             self.agents.append(agent_circle)
 
-        # Update grid
-        grid = state["Grid"]
-        for y, row in enumerate(grid):
-            for x, cell in enumerate(row):
-                if cell != self._cell_content[y][x]:
-                    resources = cell.get("Resources", 0)
-                
-                    rgba = (255, 255, 0, resources*10)
-                    dpg.configure_item(self.cell_ids[y][x], fill=rgba)
-                    
-                    self._cell_content[y][x] = copy.deepcopy(cell)
 
     def colour_agent(self, uuid=None):
         if uuid is None:
@@ -117,3 +104,10 @@ class TMTGrid:
             dpg.configure_item(agent, fill=(255, 0, 0))
 
         dpg.configure_item(f"agent-{uuid}", fill=(0, 255, 0))
+
+    def _get_cell_size(self):
+        canvas_width = dpg.get_item_width(self.drawlist_tag)
+        canvas_height = dpg.get_item_height(self.drawlist_tag)
+        cell_width = canvas_width / self.grid_size
+        cell_height = canvas_height / self.grid_size
+        return cell_width, cell_height

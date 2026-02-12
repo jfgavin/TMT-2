@@ -38,9 +38,14 @@ func (serv *GameServer) DrainAgents() {
 	for _, ag := range serv.GetAgentMap() {
 		ag.ChangeEnergy(-1)
 		if ag.GetEnergy() < 0 {
-			serv.RemoveAgent(ag)
+			serv.KillAgent(ag)
 		}
 	}
+}
+
+func (serv *GameServer) KillAgent(ag agent.ITMTAgent) {
+	serv.Env.PlaceGrave(ag.GetPos())
+	serv.RemoveAgent(ag)
 }
 
 func (serv *GameServer) IntroduceAgents() {

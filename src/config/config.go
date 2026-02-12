@@ -19,8 +19,9 @@ type AgentConfig struct {
 }
 
 type EnvironmentConfig struct {
-	GridSize  int
-	Resources ResourceConfig
+	GridSize      int
+	GraveLifespan int
+	Resources     ResourceConfig
 }
 
 type ResourceConfig struct {
@@ -43,7 +44,8 @@ func NewConfig() Config {
 			ResourceYield:  3,
 		},
 		Env: EnvironmentConfig{
-			GridSize: 64,
+			GridSize:      64,
+			GraveLifespan: 5,
 			Resources: ResourceConfig{
 				ResourceCount: 300,
 				ClusterCount:  3,

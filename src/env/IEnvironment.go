@@ -2,5 +2,9 @@ package env
 
 type IEnvironment interface {
 	GridSize() int
-	GetTile(pos Position) (*Tile, bool)
+	GetResources() map[Position]int
+	DrainResources(pos Position, amt int) bool
+	PlaceGrave(pos Position)
+	TickGraves()
+	GetGraves() map[Position]*Grave
 }

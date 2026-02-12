@@ -1,7 +1,7 @@
 import json
 import socket
 import subprocess
-from emulator.gobuild import build_go_binary, BIN_PATH
+from emulator.gobuild import build_go_binary, EMU_DIR, BIN_PATH
 from pathlib import Path
 from datetime import datetime
 
@@ -10,6 +10,7 @@ class TMTParser():
         self.HOST = "127.0.0.1"
         self.PORT = 5000
 
+        self.metadata = ""
         self.states = self._parse_bin_json()
 
     def _parse_bin_json(self):
@@ -27,6 +28,8 @@ class TMTParser():
         go_proc = subprocess.Popen([str(BIN_PATH)])
         conn, addr = sock.accept()
 
+        got_meta = False
+
         states = []
         with conn:
             buffer = ""
@@ -38,8 +41,12 @@ class TMTParser():
                 while "\n" in buffer:
                     line, buffer = buffer.split("\n", 1)
                     try:
-                        state = json.loads(line.strip())
-                        states.append(state)
+                        if not got_meta:
+                            self.metadata = json.loads(line.strip())
+                            got_meta = True
+                        else:
+                            state = json.loads(line.strip())
+                            states.append(state)
                     except json.JSONDecodeError:
                         pass
 
@@ -56,12 +63,9 @@ class TMTParser():
         date = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"sim_{date}.json"
 
-        path = Path.cwd() / "saves" / filename
+        path = EMU_DIR / "saves" / filename
         with open(path, "w") as f:
             json.dump(self.states, f, indent=2)
 
     def get_grid_size(self):
-        init_state = self.states[0]
-
-        grid = init_state.get("Grid", [])
-        return len(grid[0])
+        return self.metadata.get("GridSize", 0)
