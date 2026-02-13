@@ -44,7 +44,7 @@ func NewConfig() Config {
 			ResourceYield:  3,
 		},
 		Env: EnvironmentConfig{
-			GridSize:      64,
+			GridSize:      16,
 			GraveLifespan: 5,
 			Resources: ResourceConfig{
 				ResourceCount: 300,
