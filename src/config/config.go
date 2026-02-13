@@ -16,6 +16,13 @@ type AgentConfig struct {
 	StartingEnergy int
 	VisualRange    int
 	ResourceYield  int
+	Neuron         NeuronConfig
+}
+
+type NeuronConfig struct {
+	TauRise  float64
+	TauDecay float64
+	dt       float64
 }
 
 type EnvironmentConfig struct {
@@ -42,6 +49,11 @@ func NewConfig() Config {
 			StartingEnergy: 25,
 			VisualRange:    20,
 			ResourceYield:  3,
+			Neuron: NeuronConfig{
+				TauRise:  1.0,
+				TauDecay: 5.0,
+				dt:       0.1,
+			},
 		},
 		Env: EnvironmentConfig{
 			GridSize:      16,
