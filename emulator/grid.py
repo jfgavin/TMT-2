@@ -90,17 +90,8 @@ class TMTGrid:
         self._update_agents(state.get("Agents", {}), cell_w, cell_h)
 
     def _update_resources(self, resources):
-        for entry in resources:
-            pos = entry.get("Pos", {})
-            amt = entry.get("Value", 0)
-
-            x = pos.get("X")
-            y = pos.get("Y")
-
-            if x is None or y is None:
-                continue
-
-            fill = (255, 255, 0, amt * 10)
+        for x, y, val in resources:
+            fill = (255, 255, 0, val * 10)
 
             cell_tag = f"cell-{x}-{y}"
             if dpg.does_item_exist(cell_tag):

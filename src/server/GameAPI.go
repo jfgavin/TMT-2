@@ -10,11 +10,6 @@ import (
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
-type ResourceEntry struct {
-	Pos   env.Position
-	Value int
-}
-
 type GraveEntry struct {
 	Pos   env.Position
 	Grave *env.Grave
@@ -26,22 +21,24 @@ type Metadata struct {
 type GameState struct {
 	Iteration int
 	Turn      int
-	Resources []ResourceEntry
+	Resources [][3]int
 	Graves    []GraveEntry
 	Agents    map[uuid.UUID]agent.ITMTAgent
 }
 
 func BuildGameState(serv *GameServer, iteration, turn int) GameState {
+	resources := serv.Env.GetResources()
+
 	gs := GameState{
 		Iteration: iteration,
 		Turn:      turn,
-		Resources: make([]ResourceEntry, 0),
+		Resources: make([][3]int, 0, len(resources)),
 		Graves:    make([]GraveEntry, 0),
 		Agents:    serv.GetAgentMap(),
 	}
 
-	for pos, val := range serv.Env.GetResources() {
-		gs.Resources = append(gs.Resources, ResourceEntry{Pos: pos, Value: val})
+	for pos, val := range resources {
+		gs.Resources = append(gs.Resources, [3]int{pos.X, pos.Y, val})
 	}
 
 	for pos, grv := range serv.Env.GetGraves() {

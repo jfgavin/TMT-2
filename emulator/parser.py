@@ -67,5 +67,7 @@ class TMTParser():
         with open(path, "w") as f:
             json.dump(self.states, f, indent=2)
 
+        print(f"Saved simulation to {str(path)}")
+
     def get_grid_size(self):
         return self.metadata.get("GridSize", 0)
