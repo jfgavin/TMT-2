@@ -6,6 +6,7 @@ import (
 
 // Update position, and broadcast this new obstruction to all other agents
 func (tmta *TMTAgent) SetPosAndBroadcast(pos env.Position) {
+	pos.Bound(tmta.env.GridSize())
 	tmta.Pos = pos
 	tmta.BroadcastPosition()
 }
@@ -40,11 +41,12 @@ func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
 		return env.Position{}, false
 	}
 
+	gs := tmta.env.GridSize()
 	path := tmta.Pos.GreedyPath(target)
 
 	// Walk path and check unobstructed
 	for _, step := range path {
-		if step.IsObstructed(tmta.obstructions) {
+		if step.IsObstructed(tmta.obstructions) || !step.IsBounded(gs) {
 			return env.Position{}, false
 		}
 	}
@@ -55,9 +57,10 @@ func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
 // Random move to one of the unobstructed adjascent cells, if possible
 func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 	adj := tmta.Pos.GetAdjacent()
+	gs := tmta.env.GridSize()
 
 	for _, pos := range adj {
-		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(tmta.env.GridSize()) {
+		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(gs) {
 			return pos, true
 		}
 	}
