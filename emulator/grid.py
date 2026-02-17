@@ -100,14 +100,7 @@ class TMTGrid:
     def _update_graves(self, graves, cell_w, cell_h):
         self._clear_items(self.graves)
 
-        for grave in graves:
-            pos = grave.get("Pos", {})
-            x = pos.get("X")
-            y = pos.get("Y")
-
-            if x is None or y is None:
-                continue
-
+        for x, y, _ in graves:
             x0, y0 = x * cell_w, y * cell_h
             x1, y1 = x0 + cell_w, y0 + cell_h
 

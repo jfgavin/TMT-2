@@ -7,13 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
-	"github.com/jfgavin/TMT-2/src/env"
 )
-
-type GraveEntry struct {
-	Pos   env.Position
-	Grave *env.Grave
-}
 
 type Metadata struct {
 	GridSize int
@@ -22,18 +16,19 @@ type GameState struct {
 	Iteration int
 	Turn      int
 	Resources [][3]int
-	Graves    []GraveEntry
+	Graves    [][3]any
 	Agents    map[uuid.UUID]agent.ITMTAgent
 }
 
 func BuildGameState(serv *GameServer, iteration, turn int) GameState {
 	resources := serv.Env.GetResources()
+	graves := serv.Env.GetGraves()
 
 	gs := GameState{
 		Iteration: iteration,
 		Turn:      turn,
 		Resources: make([][3]int, 0, len(resources)),
-		Graves:    make([]GraveEntry, 0),
+		Graves:    make([][3]any, 0, len(graves)),
 		Agents:    serv.GetAgentMap(),
 	}
 
@@ -41,8 +36,8 @@ func BuildGameState(serv *GameServer, iteration, turn int) GameState {
 		gs.Resources = append(gs.Resources, [3]int{pos.X, pos.Y, val})
 	}
 
-	for pos, grv := range serv.Env.GetGraves() {
-		gs.Graves = append(gs.Graves, GraveEntry{Pos: pos, Grave: grv})
+	for pos, grv := range graves {
+		gs.Graves = append(gs.Graves, [3]any{pos.X, pos.Y, grv})
 	}
 
 	return gs
