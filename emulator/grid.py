@@ -7,8 +7,6 @@ ASSET_DIR = EMU_DIR / Path("assets")
 
 
 class TMTGrid:
-    GRAVE_TEXTURE_TAG = "grave_img"
-
     def __init__(self, parent, grid_size, init_state):
         self.parent = parent
         self.grid_size = grid_size
@@ -32,7 +30,7 @@ class TMTGrid:
 
         with dpg.texture_registry():
             dpg.add_static_texture(
-                width, height, data, tag=self.GRAVE_TEXTURE_TAG
+                width, height, data, tag="grave_img"
             )
 
     def _create_drawlist(self):
@@ -105,7 +103,7 @@ class TMTGrid:
             x1, y1 = x0 + cell_w, y0 + cell_h
 
             grave_sprite = dpg.draw_image(
-                self.GRAVE_TEXTURE_TAG,
+                "grave_img",
                 (x0, y0),
                 (x1, y1),
                 parent=self.drawlist_tag,

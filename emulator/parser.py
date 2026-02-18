@@ -1,4 +1,5 @@
 import json
+import struct
 import socket
 import subprocess
 from emulator.gobuild import build_go_binary, EMU_DIR, BIN_PATH
@@ -12,6 +13,24 @@ class TMTParser():
 
         self.metadata = ""
         self.states = self._parse_bin_json()
+
+    def _read_message(self, conn):
+        # Read 4-byte length prefix
+        len_bytes = conn.recv(4)
+        if not len_bytes:
+            return None
+        length = struct.unpack(">I", len_bytes)[0]
+
+        # Read the JSON payload exactly
+        chunks = []
+        received = 0
+        while received < length:
+            chunk = conn.recv(length - received)
+            if not chunk:
+                raise ConnectionError("Connection closed mid-message")
+            chunks.append(chunk)
+            received += len(chunk)
+        return json.loads(b"".join(chunks))
 
     def _parse_bin_json(self):
                 
@@ -28,27 +47,20 @@ class TMTParser():
         go_proc = subprocess.Popen([str(BIN_PATH)])
         conn, addr = sock.accept()
 
-        got_meta = False
-
         states = []
         with conn:
             buffer = ""
             while True:
-                data = conn.recv(4096)
-                if not data:
+                try:
+                    msg = self._read_message(conn)
+                    if msg is None:
+                        break
+                    if msg["Type"] == "metadata":
+                        self.metadata = msg["Data"]
+                    elif msg["Type"] == "state":
+                        states.append(msg["Data"])
+                except ConnectionError:
                     break
-                buffer += data.decode("utf-8")
-                while "\n" in buffer:
-                    line, buffer = buffer.split("\n", 1)
-                    try:
-                        if not got_meta:
-                            self.metadata = json.loads(line.strip())
-                            got_meta = True
-                        else:
-                            state = json.loads(line.strip())
-                            states.append(state)
-                    except json.JSONDecodeError:
-                        pass
 
         print(f"Received {len(states)} game states.")
         conn.close()

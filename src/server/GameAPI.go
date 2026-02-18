@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -8,6 +9,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
 )
+
+type Message struct {
+	Type string
+	Data any
+}
 
 type Metadata struct {
 	GridSize int
@@ -43,18 +49,37 @@ func BuildGameState(serv *GameServer, iteration, turn int) GameState {
 	return gs
 }
 
+func writeMessage(conn net.Conn, tp string, v any) error {
+	msg := Message{
+		Type: tp,
+		Data: v,
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	// Write length prefix
+	var lenBuf [4]byte
+	binary.BigEndian.PutUint32(lenBuf[:], uint32(len(data)))
+
+	_, err = conn.Write(lenBuf[:])
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Write(data)
+	return err
+}
+
 func StreamGameIteration(serv *GameServer, iteration, turn int) error {
 	if serv.Conn == nil {
 		return fmt.Errorf("no connection")
 	}
 
 	state := BuildGameState(serv, iteration, turn)
-	data, err := json.Marshal(state)
-	if err != nil {
-		return err
-	}
-
-	_, err = serv.Conn.Write(append(data, '\n'))
+	err := writeMessage(serv.Conn, "state", state)
 	return err
 }
 
@@ -69,11 +94,11 @@ func (serv *GameServer) InitSocket(address string) error {
 	}
 	serv.Conn = conn
 
-	metadata, err := json.Marshal(Metadata{GridSize: serv.Env.GridSize()})
-	if err != nil {
-		return err
+	metadata := Metadata{
+		GridSize: serv.Env.GridSize(),
 	}
-	_, err = serv.Conn.Write(append(metadata, '\n'))
+
+	err = writeMessage(serv.Conn, "metadata", metadata)
 	return err
 }
 
