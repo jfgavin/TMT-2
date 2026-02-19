@@ -12,9 +12,12 @@ type TMTAgent struct {
 	env                         env.IEnvironment
 	Name                        string
 	Pos                         env.Position
-	Target                      env.Position
 	obstructions                map[env.Position]struct{}
 	Energy                      int
+}
+
+func (tmta *TMTAgent) GetPos() env.Position {
+	return tmta.Pos
 }
 
 func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {

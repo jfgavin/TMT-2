@@ -6,6 +6,7 @@ import (
 
 // Update position, and broadcast this new obstruction to all other agents
 func (tmta *TMTAgent) SetPosAndBroadcast(pos env.Position) {
+	pos.Bound(tmta.env.GridSize())
 	tmta.Pos = pos
 	tmta.BroadcastPosition()
 }
@@ -40,11 +41,12 @@ func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
 		return env.Position{}, false
 	}
 
+	gs := tmta.env.GridSize()
 	path := tmta.Pos.GreedyPath(target)
 
 	// Walk path and check unobstructed
 	for _, step := range path {
-		if step.IsObstructed(tmta.obstructions) {
+		if step.IsObstructed(tmta.obstructions) || !step.IsBounded(gs) {
 			return env.Position{}, false
 		}
 	}
@@ -55,9 +57,10 @@ func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
 // Random move to one of the unobstructed adjascent cells, if possible
 func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 	adj := tmta.Pos.GetAdjacent()
+	gs := tmta.env.GridSize()
 
 	for _, pos := range adj {
-		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(tmta.env.GridSize()) {
+		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(gs) {
 			return pos, true
 		}
 	}
@@ -67,21 +70,20 @@ func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 
 // Returns reachable position with highest utility (resources / dist + 1)
 func (tmta *TMTAgent) GetBestStep() (env.Position, bool) {
-	locals := tmta.VisiblePositions()
 	startPos := tmta.Pos
 
 	bestStep := startPos
 	bestUtility := 0.0
 
-	for _, target := range locals {
-		tile, ok := tmta.env.GetTile(target)
-		if !ok || tile.GetResources() < 0 {
+	resources := tmta.env.GetResources()
+	for pos, amt := range resources {
+		dist := startPos.ManhatDist(pos)
+		if dist > tmta.cfg.VisualRange {
 			continue
 		}
-		dist := startPos.ManhatDist(target)
-		tileUtility := float64(tile.GetResources()) / float64(dist+1)
+		tileUtility := float64(amt) / float64(dist+1)
 		if tileUtility > bestUtility {
-			if step, ok := tmta.IsReachable(target); ok {
+			if step, ok := tmta.IsReachable(pos); ok {
 				bestStep = step
 				bestUtility = tileUtility
 			}
@@ -93,7 +95,6 @@ func (tmta *TMTAgent) GetBestStep() (env.Position, bool) {
 
 // Try to move to resources, otherwise explore, otherwise stand still
 func (tmta *TMTAgent) Move() {
-	tmta.Target = env.Position{}
 	step := tmta.Pos
 
 	if bestStep, ok := tmta.GetBestStep(); ok {

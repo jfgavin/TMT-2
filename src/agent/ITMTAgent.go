@@ -12,6 +12,8 @@ type ITMTAgent interface {
 
 	PlayTurn()
 
+	GetPos() env.Position
+
 	ChangeEnergy(energyDelta int)
 
 	GetEnergy() int

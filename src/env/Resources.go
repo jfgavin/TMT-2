@@ -10,32 +10,14 @@ import (
 // === Cluster type & Methods ===
 
 type Cluster struct {
-	env    IEnvironment
-	id     uuid.UUID
-	center Position
-	radius float64
-	lambda float64
+	id        uuid.UUID
+	resources map[Position]int
+	center    Position
+	radius    float64
+	lambda    float64
 }
 
-// Method which takes function handle, and enacts it on every tile possibly part of the cluster
-func (clu *Cluster) ForEachTile(fn func(tile *Tile, id uuid.UUID)) {
-	rad, cen := int(clu.radius+1), clu.center
-	gs := clu.env.GridSize()
-
-	for y := cen.Y - rad; y < cen.Y+rad; y++ {
-		for x := cen.X - rad; x < cen.X+rad; x++ {
-			pos := Position{x, y}
-			if !pos.IsBounded(gs) {
-				continue
-			}
-			if tile, ok := clu.env.GetTile(Position{x, y}); ok {
-				fn(tile, clu.id)
-			}
-		}
-	}
-}
-
-func (clu *Cluster) AddResources(amt int) bool {
+func (clu *Cluster) AddResources(amt int) {
 	maxTerm := 1 - math.Exp(-clu.radius/clu.lambda)
 
 	for amt > 0 {
@@ -55,29 +37,25 @@ func (clu *Cluster) AddResources(amt int) bool {
 			Y: int(math.Round(y)),
 		}
 
-		// Modify tile
-		if tile, ok := clu.env.GetTile(newPos); ok {
-			tile.AddResources(clu.id, 1)
-			amt--
-		}
+		clu.resources[newPos]++
+		amt--
 	}
-	return true
 }
 
-func (clu *Cluster) DecayCluster() {
-	clu.ForEachTile(func(tile *Tile, id uuid.UUID) {
-		tile.SubResources(id, 1)
-	})
-}
-
-func (clu *Cluster) GetClusterTotal() int {
-	sum := 0
-	clu.ForEachTile(func(tile *Tile, id uuid.UUID) {
-		if val, ok := tile.GetContributions(id); ok {
-			sum += val
-		}
-	})
-	return sum
+func (clu *Cluster) SubResource(pos Position) bool {
+	subbed := false
+	amt, ok := clu.resources[pos]
+	if !ok {
+		return false
+	}
+	if amt > 0 {
+		clu.resources[pos]--
+		subbed = true
+	}
+	if amt <= 0 {
+		delete(clu.resources, pos)
+	}
+	return subbed
 }
 
 // === Environment Top-level Resources Methods ===
@@ -87,11 +65,11 @@ func (env *Environment) NewCluster() *Cluster {
 	rad := float64(cfg.Radius)
 
 	cluster := &Cluster{
-		env:    env,
-		id:     uuid.New(),
-		center: env.GetRandPosPadded(cfg.Radius),
-		radius: rad,
-		lambda: rad * cfg.LambdaRatio,
+		id:        uuid.New(),
+		resources: make(map[Position]int),
+		center:    env.GetRandPosPadded(cfg.Radius),
+		radius:    rad,
+		lambda:    rad * cfg.LambdaRatio,
 	}
 
 	env.clusters[cluster.id] = cluster
@@ -109,17 +87,53 @@ func (env *Environment) GetCluster(id uuid.UUID) (*Cluster, bool) {
 func (env *Environment) IntroduceResources() {
 	cfg := env.cfg.Resources
 
-	clusters := make([]*Cluster, cfg.ClusterCount)
+	clus := make([]*Cluster, cfg.ClusterCount)
 
 	for i := range cfg.ClusterCount {
-		clu := env.NewCluster()
-		clusters[i] = clu
+		clus[i] = env.NewCluster()
 	}
 
 	initResources := cfg.ResourceCount
 	for initResources > 0 {
-		clu := clusters[rand.Intn(cfg.ClusterCount)]
+		clu := clus[rand.Intn(cfg.ClusterCount)]
 		clu.AddResources(1)
 		initResources--
 	}
+}
+
+func (env *Environment) GetResources() map[Position]int {
+	res := make(map[Position]int)
+	for _, clu := range env.clusters {
+		for pos, amt := range clu.resources {
+			res[pos] += amt
+		}
+	}
+	return res
+}
+
+func (env *Environment) DrainResources(pos Position, amt int) bool {
+	for amt > 0 {
+		clus := make([]*Cluster, 0)
+
+		for _, clu := range env.clusters {
+			if res, ok := clu.resources[pos]; ok && res > 0 {
+				clus = append(clus, clu)
+			}
+		}
+
+		lc := len(clus)
+
+		if lc == 0 {
+			return false
+		}
+
+		clu := clus[rand.Intn(lc)]
+		subbed := clu.SubResource(pos)
+		if subbed {
+			amt--
+		}
+
+	}
+
+	return true
 }

@@ -26,6 +26,7 @@ func (serv *GameServer) RunTurn(i, j int) {
 		ag.PlayTurn()
 	}
 	StreamGameIteration(serv, i, j)
+	serv.Env.TickGraves()
 	serv.DrainAgents()
 }
 

@@ -39,7 +39,7 @@ class TMTEmulator():
                 border=False,
                 pos=[self.PADDING, self.PADDING]
             ) as simulation_window:
-                self.grid = TMTGrid(parent=simulation_window, initState=self.parser.get_state(self.INDEX))
+                self.grid = TMTGrid(parent=simulation_window, grid_size=self.parser.get_grid_size(), init_state=self.parser.get_state(self.INDEX))
 
             with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True) as sidebar:
                 
