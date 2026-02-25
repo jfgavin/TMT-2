@@ -2,6 +2,7 @@ package agent
 
 import (
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
+	"github.com/jfgavin/TMT-2/src/algo"
 	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/env"
 )
@@ -14,6 +15,7 @@ type TMTAgent struct {
 	Pos                         env.Position
 	obstructions                map[env.Position]struct{}
 	Energy                      int
+	Syn                         algo.BiexpSynapse
 }
 
 func (tmta *TMTAgent) GetPos() env.Position {
@@ -37,6 +39,10 @@ func (tmta *TMTAgent) BroadcastPosition() {
 	tmta.BroadcastSynchronousMessage(msg)
 }
 
+func (tmta *TMTAgent) TestMySynapse() {
+	tmta.Syn.TestSynapse()
+}
+
 func (tmta *TMTAgent) PlayTurn() {
 
 	// Always try to harvest resources, then move if that fails
@@ -56,5 +62,6 @@ func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.Agen
 		Name:      name,
 		Pos:       initPos,
 		Energy:    cfg.StartingEnergy,
+		Syn:       *algo.NewBiexpSynapse(cfg.Neuron.TauRise, cfg.Neuron.TauDecay, cfg.Neuron.Dt),
 	}
 }

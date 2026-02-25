@@ -31,6 +31,10 @@ func (serv *GameServer) RunTurn(i, j int) {
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
+	for _, ag := range serv.GetShuffledAgents() {
+		ag.TestMySynapse()
+		break
+	}
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {

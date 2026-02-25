@@ -22,7 +22,7 @@ type AgentConfig struct {
 type NeuronConfig struct {
 	TauRise  float64
 	TauDecay float64
-	dt       float64
+	Dt       float64
 }
 
 type EnvironmentConfig struct {
@@ -52,7 +52,7 @@ func NewConfig() Config {
 			Neuron: NeuronConfig{
 				TauRise:  1.0,
 				TauDecay: 5.0,
-				dt:       0.1,
+				Dt:       0.1,
 			},
 		},
 		Env: EnvironmentConfig{
