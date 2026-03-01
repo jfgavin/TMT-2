@@ -41,7 +41,7 @@ type ResourceConfig struct {
 func NewConfig() Config {
 	return Config{
 		Serv: ServerConfig{
-			Iterations: 2,
+			Iterations: 10,
 			Turns:      50,
 			NumAgents:  4,
 		},

@@ -18,6 +18,7 @@ type GameServer struct {
 	agCfg config.AgentConfig
 	Env   *env.Environment
 	Conn  net.Conn
+	elims int
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
@@ -31,10 +32,6 @@ func (serv *GameServer) RunTurn(i, j int) {
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
-	for _, ag := range serv.GetShuffledAgents() {
-		ag.TestMySynapse()
-		break
-	}
 }
 
 func (serv *GameServer) RunEndOfIteration(int) {
@@ -53,6 +50,7 @@ func NewGameServer(cfg config.Config) *GameServer {
 		Env:        env.NewEnvironment(cfg.Env),
 		cfg:        cfg.Serv,
 		agCfg:      cfg.Agent, // Stored for spawning more agents later
+		elims:      0,
 	}
 
 	// Add agents

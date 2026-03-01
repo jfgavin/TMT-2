@@ -13,7 +13,7 @@ type BiexpSynapse struct {
 	riseFactor  float64
 	decayFactor float64
 
-	Output   float64
+	Output   []float64
 	Outgoing []Connection
 }
 
@@ -33,6 +33,7 @@ func NewBiexpSynapse(tauRise, tauDecay, dt float64) *BiexpSynapse {
 		Dt:          dt,
 		riseFactor:  math.Exp(-dt / tauRise),
 		decayFactor: math.Exp(-dt / tauDecay),
+		Output:      make([]float64, 0),
 	}
 }
 
@@ -44,11 +45,13 @@ func (syn *BiexpSynapse) Inject(w float64) {
 func (syn *BiexpSynapse) Advance() float64 {
 	syn.riseState *= syn.riseFactor
 	syn.decayState *= syn.decayFactor
-	return syn.decayState - syn.riseState
+	val := syn.decayState - syn.riseState
+	syn.Output = append(syn.Output, val)
+	return val
 }
 
 func (syn *BiexpSynapse) Propagate(output float64) {
 	for _, conn := range syn.Outgoing {
-		conn.Target.Inject(conn.Weight * syn.Output)
+		conn.Target.Inject(conn.Weight * syn.Output[len(syn.Output)-1])
 	}
 }

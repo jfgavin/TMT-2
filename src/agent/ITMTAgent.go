@@ -10,8 +10,6 @@ type ITMTAgent interface {
 
 	BroadcastPosition()
 
-	TestMySynapse()
-
 	PlayTurn()
 
 	GetPos() env.Position

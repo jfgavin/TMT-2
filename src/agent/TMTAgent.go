@@ -11,6 +11,7 @@ type TMTAgent struct {
 	*agent.BaseAgent[ITMTAgent] `json:"-"`
 	cfg                         config.AgentConfig
 	env                         env.IEnvironment
+	serv                        ServerAPI
 	Name                        string
 	Pos                         env.Position
 	obstructions                map[env.Position]struct{}
@@ -39,11 +40,8 @@ func (tmta *TMTAgent) BroadcastPosition() {
 	tmta.BroadcastSynchronousMessage(msg)
 }
 
-func (tmta *TMTAgent) TestMySynapse() {
-	tmta.Syn.TestSynapse()
-}
-
 func (tmta *TMTAgent) PlayTurn() {
+	tmta.DriveModel()
 
 	// Always try to harvest resources, then move if that fails
 	if !tmta.HarvestResources() {
@@ -54,11 +52,12 @@ func (tmta *TMTAgent) PlayTurn() {
 	tmta.SignalMessagingComplete()
 }
 
-func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, name string, initPos env.Position) *TMTAgent {
+func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, serv ServerAPI, name string, initPos env.Position) *TMTAgent {
 	return &TMTAgent{
 		BaseAgent: agent.CreateBaseAgent(funcs),
 		cfg:       cfg,
 		env:       env,
+		serv:      serv,
 		Name:      name,
 		Pos:       initPos,
 		Energy:    cfg.StartingEnergy,
