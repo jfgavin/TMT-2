@@ -2,7 +2,9 @@ import dearpygui.dearpygui as dpg
 import numpy as np
 
 class TMTSidebar:
-    def __init__(self, save_sim=None):
+    def __init__(self, save_sim=None, dt=0.1):
+        self.dt = dt
+        print(self.dt)
         with dpg.collapsing_header(label="Simulation State", tag="sim_state", default_open=True):
             dpg.add_text(f"Iteration: 0", tag="iter_text")
             dpg.add_text(f"Turn: 0", tag="turn_text")
@@ -82,7 +84,7 @@ class TMTSidebar:
                     dpg.add_text(f"{key}: {value}", parent="agent_header")
 
             model_output = agent["ModelOutput"]
-            x_axis = np.arange(0, len(model_output) / 10, 0.1)
+            x_axis = np.arange(0, len(model_output) * self.dt, self.dt)
 
         dpg.configure_item("agent_header", show=True)
 

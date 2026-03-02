@@ -81,5 +81,5 @@ class TMTParser():
 
         print(f"Saved simulation to {str(path)}")
 
-    def get_grid_size(self):
-        return self.metadata.get("GridSize", 0)
+    def get_metadata(self):
+        return self.metadata

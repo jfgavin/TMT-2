@@ -20,7 +20,7 @@ class TMTEmulator():
         )
 
         self.INDEX = 0
-        self.GRID_SIZE = self.parser.get_grid_size()
+        self.GRID_SIZE = self.parser.get_metadata()["GridSize"]
 
         self._init_window()
 
@@ -39,11 +39,11 @@ class TMTEmulator():
                 border=False,
                 pos=[self.PADDING, self.PADDING]
             ) as simulation_window:
-                self.grid = TMTGrid(parent=simulation_window, grid_size=self.parser.get_grid_size(), init_state=self.parser.get_state(self.INDEX))
+                self.grid = TMTGrid(parent=simulation_window, grid_size=self.GRID_SIZE, init_state=self.parser.get_state(self.INDEX))
 
             with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True) as sidebar:
                 
-                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation)
+                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation, dt=self.parser.get_metadata()["Config"]["Agent"]["Synapses"]["Dt"])
 
 
         dpg.set_primary_window(self.TMTWindow, True)

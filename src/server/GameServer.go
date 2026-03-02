@@ -60,7 +60,7 @@ func NewGameServer(cfg config.Config) *GameServer {
 	serv.SetGameRunner(serv)
 
 	// Initialise socket
-	if err := serv.InitSocket("127.0.0.1:5000"); err != nil {
+	if err := serv.InitSocket("127.0.0.1:5000", cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "Socket init failed: %v\n", err)
 	}
 
