@@ -2,9 +2,9 @@ package agent
 
 import (
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
-	"github.com/jfgavin/TMT-2/src/algo"
 	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/env"
+	"github.com/jfgavin/TMT-2/src/model"
 )
 
 type TMTAgent struct {
@@ -16,7 +16,7 @@ type TMTAgent struct {
 	Pos                         env.Position
 	obstructions                map[env.Position]struct{}
 	Energy                      int
-	Syn                         algo.BiexpSynapse
+	tmt                         *model.TMTNetwork
 }
 
 func (tmta *TMTAgent) GetPos() env.Position {
@@ -41,6 +41,7 @@ func (tmta *TMTAgent) BroadcastPosition() {
 }
 
 func (tmta *TMTAgent) PlayTurn() {
+	// Drive the TMT model
 	tmta.DriveModel()
 
 	// Always try to harvest resources, then move if that fails
@@ -53,7 +54,7 @@ func (tmta *TMTAgent) PlayTurn() {
 }
 
 func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, serv ServerAPI, name string, initPos env.Position) *TMTAgent {
-	return &TMTAgent{
+	agent := &TMTAgent{
 		BaseAgent: agent.CreateBaseAgent(funcs),
 		cfg:       cfg,
 		env:       env,
@@ -61,6 +62,9 @@ func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.Agen
 		Name:      name,
 		Pos:       initPos,
 		Energy:    cfg.StartingEnergy,
-		Syn:       *algo.NewBiexpSynapse(cfg.Neuron.TauRise, cfg.Neuron.TauDecay, cfg.Neuron.Dt),
 	}
+
+	agent.AssignTMTModel()
+
+	return agent
 }

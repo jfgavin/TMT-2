@@ -16,10 +16,10 @@ type AgentConfig struct {
 	StartingEnergy int
 	VisualRange    int
 	ResourceYield  int
-	Neuron         NeuronConfig
+	Synapses       SynapseConfig
 }
 
-type NeuronConfig struct {
+type SynapseConfig struct {
 	TauRise  float64
 	TauDecay float64
 	Dt       float64
@@ -49,7 +49,7 @@ func NewConfig() Config {
 			StartingEnergy: 25,
 			VisualRange:    20,
 			ResourceYield:  3,
-			Neuron: NeuronConfig{
+			Synapses: SynapseConfig{
 				TauRise:  1.0,
 				TauDecay: 5.0,
 				Dt:       0.1,
