@@ -7,19 +7,15 @@ import (
 )
 
 type Synapse struct {
-	TauRise  float64
-	TauDecay float64
-	Dt       float64
+	Tau       float64
+	Dt        float64
+	Threshold float64
 
-	riseState  float64
-	decayState float64
-
-	riseFactor  float64
+	V           float64 // membrane potential
 	decayFactor float64
 
 	Outgoing []Connection
 }
-
 type Connection struct {
 	Weight float64
 	Target SynapticTarget
@@ -35,32 +31,35 @@ type SynapticTarget interface {
 
 func NewSynapse(cfg config.SynapseConfig) *Synapse {
 	return &Synapse{
-		TauRise:     cfg.TauRise,
-		TauDecay:    cfg.TauDecay,
+		Tau:         cfg.TauDecay,
 		Dt:          cfg.Dt,
-		riseFactor:  math.Exp(-cfg.Dt / cfg.TauRise),
+		Threshold:   1.0,
 		decayFactor: math.Exp(-cfg.Dt / cfg.TauDecay),
 		Outgoing:    make([]Connection, 0),
 	}
 }
 
 func (syn *Synapse) Inject(w float64) {
-	syn.riseState += w
-	syn.decayState += w
+	syn.V += w
 }
 
 func (syn *Synapse) Advance() {
-	syn.riseState *= syn.riseFactor
-	syn.decayState *= syn.decayFactor
+	syn.V *= syn.decayFactor
 }
 
 func (syn *Synapse) GetOutput() float64 {
-	return syn.decayState - syn.riseState
+	return syn.V
 }
 
-func (syn *Synapse) Propagate(output float64) {
-	for _, conn := range syn.Outgoing {
-		conn.Target.Inject(conn.Weight * syn.GetOutput())
-	}
+func (syn *Synapse) Propagate() {
+	if syn.V >= syn.Threshold {
 
+		// Emit spike (value 1.0)
+		for _, conn := range syn.Outgoing {
+			conn.Target.Inject(conn.Weight)
+		}
+
+		// Reset membrane
+		syn.V = 0
+	}
 }

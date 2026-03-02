@@ -20,17 +20,14 @@ func (net *TMTNetwork) Step() float64 {
 		in.InjectFromSource()
 	}
 
-	// 2. Advance all synapses
+	// 2. Apply leak
 	for _, syn := range net.All {
 		syn.Advance()
 	}
 
-	// 3. Propagate outputs
+	// 3. Spike propagation
 	for _, syn := range net.All {
-		out := syn.GetOutput()
-		for _, conn := range syn.Outgoing {
-			conn.Target.Inject(conn.Weight * out)
-		}
+		syn.Propagate()
 	}
 
 	// 4. Advance time, read final output
@@ -89,7 +86,7 @@ func NewTMTNetwork(cfg config.SynapseConfig) *TMTNetwork {
 	elimInput := net.NewInput("eliminations")
 	msSynapse := net.NewSynapseBlock(
 		[]*Synapse{elimInput.Synapse},
-		[]float64{0.1},
+		[]float64{0.5},
 	)
 
 	// Worldview
@@ -113,4 +110,8 @@ func NewTMTNetwork(cfg config.SynapseConfig) *TMTNetwork {
 
 	net.Output = out
 	return net
+}
+
+func (net *TMTNetwork) GetOutput() float64 {
+	return net.Output.GetOutput()
 }

@@ -17,6 +17,7 @@ type TMTAgent struct {
 	obstructions                map[env.Position]struct{}
 	Energy                      int
 	tmt                         *model.TMTNetwork
+	ModelOutput                 []float64
 }
 
 func (tmta *TMTAgent) GetPos() env.Position {
@@ -55,13 +56,14 @@ func (tmta *TMTAgent) PlayTurn() {
 
 func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, serv ServerAPI, name string, initPos env.Position) *TMTAgent {
 	agent := &TMTAgent{
-		BaseAgent: agent.CreateBaseAgent(funcs),
-		cfg:       cfg,
-		env:       env,
-		serv:      serv,
-		Name:      name,
-		Pos:       initPos,
-		Energy:    cfg.StartingEnergy,
+		BaseAgent:   agent.CreateBaseAgent(funcs),
+		cfg:         cfg,
+		env:         env,
+		serv:        serv,
+		Name:        name,
+		Pos:         initPos,
+		Energy:      cfg.StartingEnergy,
+		ModelOutput: make([]float64, 0),
 	}
 
 	agent.AssignTMTModel()

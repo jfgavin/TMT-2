@@ -1,6 +1,8 @@
 package agent
 
-import "github.com/jfgavin/TMT-2/src/model"
+import (
+	"github.com/jfgavin/TMT-2/src/model"
+)
 
 func (tmta *TMTAgent) WorldviewScore() float64 {
 	return 0.5
@@ -23,5 +25,6 @@ func (tmta *TMTAgent) AssignTMTModel() {
 func (tmta *TMTAgent) DriveModel() {
 	for i := 0; i < 10; i++ {
 		tmta.tmt.Step()
+		tmta.ModelOutput = append(tmta.ModelOutput, tmta.tmt.GetOutput())
 	}
 }
