@@ -50,8 +50,8 @@ func NewConfig() Config {
 			VisualRange:    20,
 			ResourceYield:  3,
 			Synapses: SynapseConfig{
-				TauRise:  1.0,
-				TauDecay: 5.0,
+				TauRise:  0.05,
+				TauDecay: 0.03,
 				Dt:       0.1,
 			},
 		},

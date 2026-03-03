@@ -5,10 +5,10 @@ import "github.com/jfgavin/TMT-2/src/config"
 type TMTNetwork struct {
 	cfg config.SynapseConfig
 
-	Inputs map[string]*SynapseInput
+	inputs map[string]*SynapseInput
 	Output *Synapse
 
-	All []*Synapse
+	all []*Synapse
 
 	Time float64
 }
@@ -16,17 +16,17 @@ type TMTNetwork struct {
 func (net *TMTNetwork) Step() float64 {
 
 	// 1. Inject input values
-	for _, in := range net.Inputs {
+	for _, in := range net.inputs {
 		in.InjectFromSource()
 	}
 
-	// 2. Apply leak
-	for _, syn := range net.All {
+	// 2. Update membrane potential
+	for _, syn := range net.all {
 		syn.Advance()
 	}
 
 	// 3. Spike propagation
-	for _, syn := range net.All {
+	for _, syn := range net.all {
 		syn.Propagate()
 	}
 
@@ -38,7 +38,7 @@ func (net *TMTNetwork) Step() float64 {
 
 func (net *TMTNetwork) NewSynapse() *Synapse {
 	syn := NewSynapse(net.cfg)
-	net.All = append(net.All, syn)
+	net.all = append(net.all, syn)
 	return syn
 }
 
@@ -50,7 +50,7 @@ func (net *TMTNetwork) NewInput(name string) *SynapseInput {
 		Source:  nil,
 	}
 
-	net.Inputs[name] = input
+	net.inputs[name] = input
 	return input
 }
 
@@ -79,14 +79,14 @@ func (sin *SynapseInput) InjectFromSource() {
 func NewTMTNetwork(cfg config.SynapseConfig) *TMTNetwork {
 	net := &TMTNetwork{
 		cfg:    cfg,
-		Inputs: make(map[string]*SynapseInput),
+		inputs: make(map[string]*SynapseInput),
 	}
 
 	// Mortality Salience
 	elimInput := net.NewInput("eliminations")
 	msSynapse := net.NewSynapseBlock(
 		[]*Synapse{elimInput.Synapse},
-		[]float64{0.5},
+		[]float64{0.8},
 	)
 
 	// Worldview
@@ -114,4 +114,10 @@ func NewTMTNetwork(cfg config.SynapseConfig) *TMTNetwork {
 
 func (net *TMTNetwork) GetOutput() float64 {
 	return net.Output.GetOutput()
+}
+
+func (net *TMTNetwork) RegisterInput(name string, function func() float64) {
+	net.inputs[name].Source = func() float64 {
+		return function()
+	}
 }

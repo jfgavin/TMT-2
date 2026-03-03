@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"fmt"
+
 	"github.com/jfgavin/TMT-2/src/model"
 )
 
@@ -11,13 +13,12 @@ func (tmta *TMTAgent) WorldviewScore() float64 {
 func (tmta *TMTAgent) AssignTMTModel() {
 	net := model.NewTMTNetwork(tmta.cfg.Synapses)
 
-	net.Inputs["eliminations"].Source = func() float64 {
-		return float64(tmta.serv.GetEliminationCount() * 100)
+	elimCount := func() float64 {
+		return float64(tmta.serv.GetEliminationCount())
 	}
 
-	net.Inputs["worldview"].Source = func() float64 {
-		return tmta.WorldviewScore()
-	}
+	net.RegisterInput("eliminations", elimCount)
+	net.RegisterInput("worldview", tmta.WorldviewScore)
 
 	tmta.tmt = net
 }
@@ -26,7 +27,10 @@ func (tmta *TMTAgent) AssignTMTModel() {
 func (tmta *TMTAgent) DriveModel() {
 
 	for i := 0.0; i < 1.0; i += tmta.cfg.Synapses.Dt {
-		tmta.tmt.Step()
+		out := tmta.tmt.Step()
+		if tmta.Name == "Agent 0" {
+			fmt.Println(out)
+		}
 		tmta.ModelOutput = append(tmta.ModelOutput, tmta.tmt.GetOutput())
 	}
 }
