@@ -4,7 +4,6 @@ import numpy as np
 class TMTSidebar:
     def __init__(self, save_sim=None, dt=0.1):
         self.dt = dt
-        print(self.dt)
         with dpg.collapsing_header(label="Simulation State", tag="sim_state", default_open=True):
             dpg.add_text(f"Iteration: 0", tag="iter_text")
             dpg.add_text(f"Turn: 0", tag="turn_text")
@@ -85,11 +84,9 @@ class TMTSidebar:
 
             model_output = agent["ModelOutput"]
             x_axis = np.arange(0, len(model_output) * self.dt, self.dt)
+            dpg.set_value("tmt_line_series", [x_axis, model_output])
+            dpg.fit_axis_data("x_axis")
+            dpg.fit_axis_data("y_axis")
 
         dpg.configure_item("agent_header", show=True)
-
-        dpg.set_value("tmt_line_series", [x_axis, model_output])
-        dpg.fit_axis_data("x_axis")
-        dpg.fit_axis_data("y_axis")
-
         dpg.configure_item("model_plot", show=True)
