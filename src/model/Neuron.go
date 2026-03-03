@@ -6,7 +6,7 @@ import (
 	"github.com/jfgavin/TMT-2/src/config"
 )
 
-type Synapse struct {
+type Neuron struct {
 	TauRise  float64
 	TauDecay float64
 	Dt       float64
@@ -15,7 +15,7 @@ type Synapse struct {
 
 	V float64 // membrane potential
 
-	riseState  float64 // rise  accumulator
+	riseState  float64 // rise accumulator
 	decayState float64 // decay accumulator
 	riseRate   float64 // exp(-Dt/TauRise)
 	decayRate  float64 // exp(-Dt/TauDecay)
@@ -34,19 +34,16 @@ type SynapticTarget interface {
 	Inject(weight float64)
 }
 
-func NewSynapse(cfg config.SynapseConfig) *Synapse {
+func NewNeuron(cfg config.NeuronConfig) *Neuron {
 	riseRate := math.Exp(-cfg.Dt / cfg.TauRise)
 	decayRate := math.Exp(-cfg.Dt / cfg.TauDecay)
 
-	// Analytical peak time and peak value of (exp(-t/τd) - exp(-t/τr))
-	// t_peak = (τr*τd)/(τd-τr) * ln(τd/τr)
-	// peak   = exp(-t_peak/τd) - exp(-t_peak/τr)
 	tPeak := (cfg.TauRise * cfg.TauDecay) / (cfg.TauDecay - cfg.TauRise) *
 		math.Log(cfg.TauDecay/cfg.TauRise)
 	peak := math.Exp(-tPeak/cfg.TauDecay) - math.Exp(-tPeak/cfg.TauRise)
-	normFactor := 1.0 / peak // multiply injected weight by this
+	normFactor := 1.0 / peak
 
-	return &Synapse{
+	return &Neuron{
 		TauRise:    cfg.TauRise,
 		TauDecay:   cfg.TauDecay,
 		Dt:         cfg.Dt,
@@ -58,19 +55,19 @@ func NewSynapse(cfg config.SynapseConfig) *Synapse {
 	}
 }
 
-func (syn *Synapse) Inject(weight float64) {
+func (syn *Neuron) Inject(weight float64) {
 	scaled := weight * syn.normFactor
 	syn.riseState += scaled
 	syn.decayState += scaled
 }
 
-func (syn *Synapse) Advance() {
+func (syn *Neuron) Advance() {
 	syn.riseState *= syn.riseRate
 	syn.decayState *= syn.decayRate
 	syn.V += syn.decayState - syn.riseState
 }
 
-func (syn *Synapse) Propagate() {
+func (syn *Neuron) Propagate() {
 	syn.spikedFlag = false
 	if syn.V >= syn.Threshold {
 		for _, conn := range syn.Outgoing {
@@ -81,14 +78,14 @@ func (syn *Synapse) Propagate() {
 	}
 }
 
-func (syn *Synapse) GetOutput() float64 {
+func (syn *Neuron) GetOutput() float64 {
 	return syn.V
 }
 
-func (syn *Synapse) DidSpike() bool {
+func (syn *Neuron) DidSpike() bool {
 	return syn.spikedFlag
 }
 
-func (syn *Synapse) AddConnection(target *Synapse, weight float64) {
+func (syn *Neuron) AddConnection(target *Neuron, weight float64) {
 	syn.Outgoing = append(syn.Outgoing, Connection{Weight: weight, Target: target})
 }

@@ -3,12 +3,12 @@ package model
 import "github.com/jfgavin/TMT-2/src/config"
 
 type TMTNetwork struct {
-	cfg config.SynapseConfig
+	cfg config.NeuronConfig
 
-	inputs map[string]*SynapseInput
-	Output *Synapse
+	inputs map[string]*NeuronInput
+	Output *Neuron
 
-	all []*Synapse
+	all []*Neuron
 
 	Time float64
 }
@@ -36,27 +36,27 @@ func (net *TMTNetwork) Step() float64 {
 	return net.Output.GetOutput()
 }
 
-func (net *TMTNetwork) NewSynapse() *Synapse {
-	syn := NewSynapse(net.cfg)
+func (net *TMTNetwork) NewNeuron() *Neuron {
+	syn := NewNeuron(net.cfg)
 	net.all = append(net.all, syn)
 	return syn
 }
 
-func (net *TMTNetwork) NewInput(name string) *SynapseInput {
-	syn := net.NewSynapse()
+func (net *TMTNetwork) NewInput(name string) *NeuronInput {
+	syn := net.NewNeuron()
 
-	input := &SynapseInput{
-		Synapse: syn,
-		Source:  nil,
+	input := &NeuronInput{
+		Neuron: syn,
+		Source: nil,
 	}
 
 	net.inputs[name] = input
 	return input
 }
 
-// Used when multiple synapses target one synapse
-func (net *TMTNetwork) NewSynapseBlock(inputs []*Synapse, weights []float64) *Synapse {
-	out := net.NewSynapse()
+// Used when multiple Neurons target one Neuron
+func (net *TMTNetwork) NewNeuronBlock(inputs []*Neuron, weights []float64) *Neuron {
+	out := net.NewNeuron()
 	for i, syn := range inputs {
 		syn.AddConnection(out, weights[i])
 	}
@@ -64,43 +64,43 @@ func (net *TMTNetwork) NewSynapseBlock(inputs []*Synapse, weights []float64) *Sy
 	return out
 }
 
-// A method of taking function handles as network inputs
-type SynapseInput struct {
-	*Synapse
+// A way of taking function handles as network inputs
+type NeuronInput struct {
+	*Neuron
 	Source func() float64
 }
 
-func (sin *SynapseInput) InjectFromSource() {
+func (sin *NeuronInput) InjectFromSource() {
 	if sin.Source != nil {
 		sin.Inject(sin.Source())
 	}
 }
 
-func NewTMTNetwork(cfg config.SynapseConfig) *TMTNetwork {
+func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 	net := &TMTNetwork{
 		cfg:    cfg,
-		inputs: make(map[string]*SynapseInput),
+		inputs: make(map[string]*NeuronInput),
 	}
 
 	// Mortality Salience
 	elimInput := net.NewInput("eliminations")
-	msSynapse := net.NewSynapseBlock(
-		[]*Synapse{elimInput.Synapse},
+	msNeuron := net.NewNeuronBlock(
+		[]*Neuron{elimInput.Neuron},
 		[]float64{0.8},
 	)
 
 	// Worldview
 	worldviewValidationInput := net.NewInput("worldview")
-	wvSynapse := net.NewSynapseBlock(
-		[]*Synapse{worldviewValidationInput.Synapse},
+	wvNeuron := net.NewNeuronBlock(
+		[]*Neuron{worldviewValidationInput.Neuron},
 		[]float64{0.5},
 	)
 
 	// Output
-	out := net.NewSynapseBlock(
-		[]*Synapse{
-			msSynapse,
-			wvSynapse,
+	out := net.NewNeuronBlock(
+		[]*Neuron{
+			msNeuron,
+			wvNeuron,
 		},
 		[]float64{
 			0.5,

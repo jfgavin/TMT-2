@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"fmt"
-
 	"github.com/jfgavin/TMT-2/src/model"
 )
 
@@ -11,7 +9,7 @@ func (tmta *TMTAgent) WorldviewScore() float64 {
 }
 
 func (tmta *TMTAgent) AssignTMTModel() {
-	net := model.NewTMTNetwork(tmta.cfg.Synapses)
+	net := model.NewTMTNetwork(tmta.cfg.Neurons)
 
 	elimCount := func() float64 {
 		return float64(tmta.serv.GetEliminationCount())
@@ -26,13 +24,12 @@ func (tmta *TMTAgent) AssignTMTModel() {
 // Run once per turn
 func (tmta *TMTAgent) DriveModel() {
 
-	for i := 0.0; i < 1.0; i += tmta.cfg.Synapses.Dt {
+	for i := 0.0; i < 1.0; i += tmta.cfg.Neurons.Dt {
 		out := tmta.tmt.Step()
 		tmta.ModelOutput = append(tmta.ModelOutput, out)
 
 		if tmta.tmt.Output.DidSpike() {
 			tmta.serv.RequestSacrifice(tmta)
-			fmt.Printf("%s has fired!!!\n", tmta.Name)
 		}
 	}
 }

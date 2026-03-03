@@ -43,7 +43,7 @@ class TMTEmulator():
 
             with dpg.child_window(label="Sidebar", tag="side", width=self.SIDEBAR_WIDTH, pos=[sim_size + 2*self.PADDING, self.PADDING], border=False, no_scrollbar=True) as sidebar:
                 
-                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation, dt=self.parser.get_metadata()["Config"]["Agent"]["Synapses"]["Dt"])
+                self.sidebar = TMTSidebar(save_sim=self.parser.save_simulation, dt=self.parser.get_metadata()["Config"]["Agent"]["Neurons"]["Dt"])
 
 
         dpg.set_primary_window(self.TMTWindow, True)
