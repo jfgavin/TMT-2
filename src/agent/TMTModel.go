@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"fmt"
+
 	"github.com/jfgavin/TMT-2/src/model"
 )
 
@@ -30,6 +32,7 @@ func (tmta *TMTAgent) DriveModel() {
 
 		if out >= 1.0 {
 			tmta.serv.RequestSacrifice(tmta)
+			fmt.Printf("%s has fired!!!\n", tmta.Name)
 		}
 	}
 }
