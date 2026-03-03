@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"fmt"
-
 	"github.com/jfgavin/TMT-2/src/model"
 )
 
@@ -28,9 +26,10 @@ func (tmta *TMTAgent) DriveModel() {
 
 	for i := 0.0; i < 1.0; i += tmta.cfg.Synapses.Dt {
 		out := tmta.tmt.Step()
-		if tmta.Name == "Agent 0" {
-			fmt.Println(out)
+		tmta.ModelOutput = append(tmta.ModelOutput, out)
+
+		if out >= 1.0 {
+			tmta.serv.RequestSacrifice(tmta)
 		}
-		tmta.ModelOutput = append(tmta.ModelOutput, tmta.tmt.GetOutput())
 	}
 }
