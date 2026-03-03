@@ -30,7 +30,7 @@ func (tmta *TMTAgent) DriveModel() {
 		out := tmta.tmt.Step()
 		tmta.ModelOutput = append(tmta.ModelOutput, out)
 
-		if out >= 1.0 {
+		if tmta.tmt.Output.DidSpike() {
 			tmta.serv.RequestSacrifice(tmta)
 			fmt.Printf("%s has fired!!!\n", tmta.Name)
 		}

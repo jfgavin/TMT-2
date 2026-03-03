@@ -21,6 +21,8 @@ type Synapse struct {
 	decayRate  float64 // exp(-Dt/TauDecay)
 	normFactor float64 // peak-normalisation so max(g)≈1 per unit weight
 
+	spikedFlag bool
+
 	Outgoing []Connection
 }
 type Connection struct {
@@ -69,16 +71,22 @@ func (syn *Synapse) Advance() {
 }
 
 func (syn *Synapse) Propagate() {
+	syn.spikedFlag = false
 	if syn.V >= syn.Threshold {
 		for _, conn := range syn.Outgoing {
 			conn.Target.Inject(conn.Weight)
 		}
 		syn.V = 0
+		syn.spikedFlag = true
 	}
 }
 
 func (syn *Synapse) GetOutput() float64 {
 	return syn.V
+}
+
+func (syn *Synapse) DidSpike() bool {
+	return syn.spikedFlag
 }
 
 func (syn *Synapse) AddConnection(target *Synapse, weight float64) {
