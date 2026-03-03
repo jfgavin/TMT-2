@@ -45,7 +45,13 @@ func (serv *GameServer) DrainAgents() {
 }
 
 func (serv *GameServer) KillAgent(ag agent.ITMTAgent) {
-	serv.Env.PlaceGrave(ag.GetPos())
+	serv.Env.PlaceTombstone(ag.GetPos())
+	serv.RemoveAgent(ag)
+	serv.elims++
+}
+
+func (serv *GameServer) SacrificeAgent(ag agent.ITMTAgent) {
+	serv.Env.PlaceMemorial(ag.GetPos())
 	serv.RemoveAgent(ag)
 	serv.elims++
 }

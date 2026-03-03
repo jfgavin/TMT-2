@@ -13,5 +13,5 @@ func (serv *GameServer) GetEliminationCount() int {
 // Whilst perhaps impossible, an agent which can reference other agents could maliciously request their deaths
 // By using a pointer, agents should not have access to each other's pointers, so should be secure, unlike e.g. Name
 func (serv *GameServer) RequestSacrifice(sacAg *agent.TMTAgent) {
-	serv.KillAgent(sacAg)
+	serv.SacrificeAgent(sacAg)
 }
