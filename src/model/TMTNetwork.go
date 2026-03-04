@@ -2,10 +2,17 @@ package model
 
 import "github.com/jfgavin/TMT-2/src/config"
 
+type TMTInputSource int
+
+const (
+	Eliminations TMTInputSource = iota
+	WorldviewValidation
+)
+
 type TMTNetwork struct {
 	cfg config.NeuronConfig
 
-	inputs map[string]*NeuronInput
+	inputs map[TMTInputSource]*NeuronInput
 	Output *Neuron
 
 	all []*Neuron
@@ -43,7 +50,7 @@ func (net *TMTNetwork) NewNeuron() *Neuron {
 	return syn
 }
 
-func (net *TMTNetwork) NewInput(name string) *NeuronInput {
+func (net *TMTNetwork) NewInput(source TMTInputSource) *NeuronInput {
 	syn := net.NewNeuron()
 
 	input := &NeuronInput{
@@ -51,7 +58,7 @@ func (net *TMTNetwork) NewInput(name string) *NeuronInput {
 		Source: nil,
 	}
 
-	net.inputs[name] = input
+	net.inputs[source] = input
 	return input
 }
 
@@ -80,18 +87,18 @@ func (sin *NeuronInput) InjectFromSource() {
 func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 	net := &TMTNetwork{
 		cfg:    cfg,
-		inputs: make(map[string]*NeuronInput),
+		inputs: make(map[TMTInputSource]*NeuronInput),
 	}
 
 	// Mortality Salience
-	elimInput := net.NewInput("eliminations")
+	elimInput := net.NewInput(Eliminations)
 	msNeuron := net.NewNeuronBlock(
 		[]*Neuron{elimInput.Neuron},
 		[]float64{1.0},
 	)
 
 	// Worldview
-	worldviewValidationInput := net.NewInput("worldview")
+	worldviewValidationInput := net.NewInput(WorldviewValidation)
 	wvNeuron := net.NewNeuronBlock(
 		[]*Neuron{worldviewValidationInput.Neuron},
 		[]float64{0.5},
@@ -117,8 +124,8 @@ func (net *TMTNetwork) GetOutput() float64 {
 	return net.Output.GetOutput()
 }
 
-func (net *TMTNetwork) RegisterInput(name string, function func() float64) {
-	net.inputs[name].Source = func() float64 {
+func (net *TMTNetwork) RegisterInput(source TMTInputSource, function func() float64) {
+	net.inputs[source].Source = func() float64 {
 		return function()
 	}
 }

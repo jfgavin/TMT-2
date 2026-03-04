@@ -17,8 +17,8 @@ func (tmta *TMTAgent) AssignTMTModel() {
 		return float64(tmta.serv.GetEliminationCount())
 	}
 
-	net.RegisterInput("eliminations", elimCount)
-	net.RegisterInput("worldview", tmta.WorldviewScore)
+	net.RegisterInput(model.Eliminations, elimCount)
+	net.RegisterInput(model.WorldviewValidation, tmta.WorldviewScore)
 
 	tmta.tmt = net
 }

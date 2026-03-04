@@ -35,7 +35,7 @@ func (pos Position) Bound(upperBound int) {
 	}
 }
 
-func (pos Position) GetAdjacent() [4]Position {
+func (pos Position) GetShuffledAdjacent() [4]Position {
 	adj := [4]Position{
 		{pos.X + 1, pos.Y},
 		{pos.X - 1, pos.Y},
@@ -57,7 +57,7 @@ func (pos Position) GreedyNextStep(target Position) Position {
 	remDist := pos.ManhatDist(target)
 	bestRemDist := remDist
 
-	for _, adj := range pos.GetAdjacent() {
+	for _, adj := range pos.GetShuffledAdjacent() {
 		dist := adj.ManhatDist(target)
 		if dist < bestRemDist {
 			nextStep = adj
