@@ -50,8 +50,8 @@ func NewConfig() Config {
 			VisualRange:    20,
 			ResourceYield:  3,
 			Neurons: NeuronConfig{
-				TauRise:  0.05,
-				TauDecay: 0.03,
+				TauRise:  10,
+				TauDecay: 100,
 				Dt:       0.1,
 			},
 		},

@@ -13,13 +13,14 @@ type TMTNetwork struct {
 	Time float64
 }
 
-func (net *TMTNetwork) Step() float64 {
-
+func (net *TMTNetwork) Inject() {
 	// 1. Inject input values
 	for _, in := range net.inputs {
 		in.InjectFromSource()
 	}
+}
 
+func (net *TMTNetwork) Step() float64 {
 	// 2. Update membrane potential
 	for _, syn := range net.all {
 		syn.Advance()
@@ -86,7 +87,7 @@ func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 	elimInput := net.NewInput("eliminations")
 	msNeuron := net.NewNeuronBlock(
 		[]*Neuron{elimInput.Neuron},
-		[]float64{0.8},
+		[]float64{1.0},
 	)
 
 	// Worldview
@@ -103,7 +104,7 @@ func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 			wvNeuron,
 		},
 		[]float64{
-			0.5,
+			1.0,
 			0.5,
 		},
 	)

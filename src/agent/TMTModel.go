@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"math"
+
 	"github.com/jfgavin/TMT-2/src/model"
 )
 
@@ -23,13 +25,18 @@ func (tmta *TMTAgent) AssignTMTModel() {
 
 // Run once per turn
 func (tmta *TMTAgent) DriveModel() {
+	tmta.tmt.Inject()
 
-	for i := 0.0; i < 1.0; i += tmta.cfg.Neurons.Dt {
+	steps := int(math.Round(1.0 / tmta.cfg.Neurons.Dt))
+	for i := 0; i < steps; i++ {
 		out := tmta.tmt.Step()
 		tmta.ModelOutput = append(tmta.ModelOutput, out)
 
 		if tmta.tmt.Output.DidSpike() {
+			// Hitting this is currently failing to transmit the modification to the agent since the last game state
+			// Request should store agent in a server buffer until the next turn, where the kill is executed
 			tmta.serv.RequestSacrifice(tmta)
+			return
 		}
 	}
 }
