@@ -90,14 +90,14 @@ func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 		inputs: make(map[TMTInputSource]*NeuronInput),
 	}
 
-	// Mortality Salience
+	// Mortality Salience block
 	elimInput := net.NewInput(Eliminations)
 	msNeuron := net.NewNeuronBlock(
 		[]*Neuron{elimInput.Neuron},
 		[]float64{0.05},
 	)
 
-	// Worldview
+	// Worldview Validation block
 	worldviewValidationInput := net.NewInput(WorldviewValidation)
 	wvNeuron := net.NewNeuronBlock(
 		[]*Neuron{worldviewValidationInput.Neuron},

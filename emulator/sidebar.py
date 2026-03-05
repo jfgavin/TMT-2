@@ -15,16 +15,12 @@ class TMTSidebar:
             dpg.add_text("", tag="agent_name")
             dpg.add_text("", tag="agent_energy")
         with dpg.plot(tag="model_plot", label="TMT Model Output", width=320, height=280, show=False):
-            # optionally create legend
             dpg.add_plot_legend()
 
-            # REQUIRED: create x and y axes
             dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis")
             dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")
 
-            # series belong to a y axis
             dpg.add_line_series([0], [0], tag="tmt_line_series", label="Model Output", parent="y_axis")
-
 
     def update_state_metrics(self, state=None):
         if state is None:

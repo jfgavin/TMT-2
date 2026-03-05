@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"math"
+
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
 	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/env"
@@ -39,6 +41,33 @@ func (tmta *TMTAgent) ClearObstructions() {
 func (tmta *TMTAgent) BroadcastPosition() {
 	msg := tmta.NewObstructionMessage(tmta.Pos)
 	tmta.BroadcastSynchronousMessage(msg)
+}
+
+func (tmta *TMTAgent) AssignTMTModel() {
+	net := model.NewTMTNetwork(tmta.cfg.Neurons)
+
+	elimCount := func() float64 {
+		return float64(tmta.serv.GetEliminationCount())
+	}
+
+	net.RegisterInput(model.Eliminations, elimCount)
+
+	tmta.tmt = net
+}
+
+func (tmta *TMTAgent) DriveModel() {
+	tmta.tmt.Inject()
+
+	steps := int(math.Round(tmta.cfg.Neurons.MsPerStep / tmta.cfg.Neurons.Dt))
+	for i := 0; i < steps; i++ {
+		out := tmta.tmt.Step()
+		tmta.ModelOutput = append(tmta.ModelOutput, out)
+
+		if tmta.tmt.Output.DidSpike() {
+			tmta.serv.RequestSacrifice(tmta)
+			return
+		}
+	}
 }
 
 func (tmta *TMTAgent) PlayTurn() {

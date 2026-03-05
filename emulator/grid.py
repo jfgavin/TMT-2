@@ -31,10 +31,10 @@ class TMTGrid:
         for file in (tombstone_file, memorial_file):
             width, height, _, data = dpg.load_image(str(ASSET_DIR / file))
 
-            name = file.replace(".png", "")
+            texture_tag = file.replace(".png", "_img")
             with dpg.texture_registry():
                 dpg.add_static_texture(
-                    width, height, data, tag=f"{name}_img"
+                    width, height, data, tag=texture_tag
                 )
 
     def _create_drawlist(self):

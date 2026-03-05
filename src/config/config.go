@@ -43,8 +43,8 @@ type ResourceConfig struct {
 func NewConfig() Config {
 	return Config{
 		Serv: ServerConfig{
-			Iterations: 10,
-			Turns:      50,
+			Iterations: 2,
+			Turns:      100,
 			NumAgents:  4,
 		},
 		Agent: AgentConfig{
@@ -52,11 +52,12 @@ func NewConfig() Config {
 			VisualRange:    20,
 			ResourceYield:  3,
 			Neurons: NeuronConfig{
-				TauRise:   2.0,  // ms — fast synaptic rise
-				TauDecay:  20.0, // ms — slower synaptic decay (must be > TauRise)
-				TauMemb:   20.0, // ms — membrane leak time constant
-				MsPerStep: 10.0, // ms - number of milliseconds simulated per game turn
-				Dt:        0.1,  // ms — timestep (0.1ms is standard)
+				// All time constants in milliseconds / ms
+				TauRise:   2.0,  // Synaptic rise
+				TauDecay:  20.0, // Synaptic decay - must be slower than rise
+				TauMemb:   20.0, // Synapse membrane leak time constant
+				MsPerStep: 10.0, // Milliseconds simulated per simulation turn
+				Dt:        0.1,  // Neuron model timestep
 			},
 		},
 		Env: EnvironmentConfig{
