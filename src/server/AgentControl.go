@@ -33,15 +33,23 @@ func (serv *GameServer) EstablishInitialObstructions() {
 	}
 }
 
-func (serv *GameServer) DrainAgents() {
-	// Drain agent, and if -ve energy, kill it
+func (serv *GameServer) HandleAgentMortality() {
 	serv.elims = 0
 	for _, ag := range serv.GetAgentMap() {
+		// Drain agent, then kill if no energy
 		ag.ChangeEnergy(-1)
 		if ag.GetEnergy() < 0 {
 			serv.KillAgent(ag)
 		}
 	}
+
+	// Sacrifice agents which requested it
+	for _, ag := range serv.sacrificeRequests {
+		serv.SacrificeAgent(ag)
+	}
+
+	// Clear sacrifice buffer
+	serv.sacrificeRequests = nil
 }
 
 func (serv *GameServer) KillAgent(ag agent.ITMTAgent) {

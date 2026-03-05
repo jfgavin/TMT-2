@@ -14,11 +14,12 @@ import (
 
 type GameServer struct {
 	*server.BaseServer[agent.ITMTAgent]
-	cfg   config.ServerConfig
-	agCfg config.AgentConfig
-	Env   *env.Environment
-	Conn  net.Conn
-	elims int
+	cfg               config.ServerConfig
+	agCfg             config.AgentConfig
+	Env               *env.Environment
+	Conn              net.Conn
+	elims             int
+	sacrificeRequests []agent.ITMTAgent
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
@@ -28,7 +29,7 @@ func (serv *GameServer) RunTurn(i, j int) {
 	}
 	StreamGameIteration(serv, i, j)
 	serv.Env.TickGraves()
-	serv.DrainAgents()
+	serv.HandleAgentMortality()
 }
 
 func (serv *GameServer) RunStartOfIteration(int) {
@@ -46,11 +47,12 @@ func (serv *GameServer) Start() {
 
 func NewGameServer(cfg config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer: server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
-		Env:        env.NewEnvironment(cfg.Env),
-		cfg:        cfg.Serv,
-		agCfg:      cfg.Agent, // Stored for spawning more agents later
-		elims:      0,
+		BaseServer:        server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:               env.NewEnvironment(cfg.Env),
+		cfg:               cfg.Serv,
+		agCfg:             cfg.Agent, // Stored for spawning more agents later
+		elims:             0,
+		sacrificeRequests: make([]agent.ITMTAgent, 0),
 	}
 
 	// Add agents
