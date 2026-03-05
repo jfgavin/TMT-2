@@ -19,6 +19,7 @@ type Neuron struct {
 	decayState float64 // decay accumulator
 	riseRate   float64 // exp(-Dt/TauRise)
 	decayRate  float64 // exp(-Dt/TauDecay)
+	membRate   float64
 	normFactor float64 // peak-normalisation so max(g)≈1 per unit weight
 
 	spikedFlag bool
@@ -35,9 +36,14 @@ type SynapticTarget interface {
 }
 
 func NewNeuron(cfg config.NeuronConfig) *Neuron {
+	if cfg.TauRise == cfg.TauDecay {
+		panic("TauRise == TauDecay, creating div by 0 bug. The bi-exponential kernel requires TauRise < TauDecay")
+	} else if cfg.TauRise > cfg.TauDecay {
+		panic("TauRise > TauDecay. The bi-exponential kernel requires TauRise < TauDecay")
+	}
+
 	riseRate := math.Exp(-cfg.Dt / cfg.TauRise)
 	decayRate := math.Exp(-cfg.Dt / cfg.TauDecay)
-
 	tPeak := (cfg.TauRise * cfg.TauDecay) / (cfg.TauDecay - cfg.TauRise) *
 		math.Log(cfg.TauDecay/cfg.TauRise)
 	peak := math.Exp(-tPeak/cfg.TauDecay) - math.Exp(-tPeak/cfg.TauRise)
@@ -50,6 +56,7 @@ func NewNeuron(cfg config.NeuronConfig) *Neuron {
 		Threshold:  1.0,
 		riseRate:   riseRate,
 		decayRate:  decayRate,
+		membRate:   math.Exp(-cfg.Dt / cfg.TauMemb),
 		normFactor: normFactor,
 		Outgoing:   make([]Connection, 0),
 	}
@@ -64,7 +71,7 @@ func (syn *Neuron) Inject(weight float64) {
 func (syn *Neuron) Advance() {
 	syn.riseState *= syn.riseRate
 	syn.decayState *= syn.decayRate
-	syn.V += syn.decayState - syn.riseState
+	syn.V = (syn.V * syn.membRate) + (syn.decayState - syn.riseState)
 }
 
 func (syn *Neuron) Propagate() {
@@ -74,6 +81,8 @@ func (syn *Neuron) Propagate() {
 			conn.Target.Inject(conn.Weight)
 		}
 		syn.V = 0
+		syn.riseState = 0
+		syn.decayState = 0
 		syn.spikedFlag = true
 	}
 }

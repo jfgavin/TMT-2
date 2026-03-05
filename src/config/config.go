@@ -20,9 +20,11 @@ type AgentConfig struct {
 }
 
 type NeuronConfig struct {
-	TauRise  float64
-	TauDecay float64
-	Dt       float64
+	TauRise   float64
+	TauDecay  float64
+	TauMemb   float64
+	MsPerStep float64
+	Dt        float64
 }
 
 type EnvironmentConfig struct {
@@ -50,9 +52,11 @@ func NewConfig() Config {
 			VisualRange:    20,
 			ResourceYield:  3,
 			Neurons: NeuronConfig{
-				TauRise:  10,
-				TauDecay: 100,
-				Dt:       0.1,
+				TauRise:   2.0,  // ms — fast synaptic rise
+				TauDecay:  20.0, // ms — slower synaptic decay (must be > TauRise)
+				TauMemb:   20.0, // ms — membrane leak time constant
+				MsPerStep: 10.0, // ms - number of milliseconds simulated per game turn
+				Dt:        0.1,  // ms — timestep (0.1ms is standard)
 			},
 		},
 		Env: EnvironmentConfig{

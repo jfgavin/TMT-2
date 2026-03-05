@@ -27,7 +27,7 @@ func (tmta *TMTAgent) AssignTMTModel() {
 func (tmta *TMTAgent) DriveModel() {
 	tmta.tmt.Inject()
 
-	steps := int(math.Round(1.0 / tmta.cfg.Neurons.Dt))
+	steps := int(math.Round(tmta.cfg.Neurons.MsPerStep / tmta.cfg.Neurons.Dt))
 	for i := 0; i < steps; i++ {
 		out := tmta.tmt.Step()
 		tmta.ModelOutput = append(tmta.ModelOutput, out)

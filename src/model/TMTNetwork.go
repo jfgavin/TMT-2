@@ -94,7 +94,7 @@ func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 	elimInput := net.NewInput(Eliminations)
 	msNeuron := net.NewNeuronBlock(
 		[]*Neuron{elimInput.Neuron},
-		[]float64{1.0},
+		[]float64{0.05},
 	)
 
 	// Worldview
@@ -111,7 +111,7 @@ func NewTMTNetwork(cfg config.NeuronConfig) *TMTNetwork {
 			wvNeuron,
 		},
 		[]float64{
-			1.0,
+			0.01,
 			0.5,
 		},
 	)
