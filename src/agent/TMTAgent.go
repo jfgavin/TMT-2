@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/env"
 	"github.com/jfgavin/TMT-2/src/model"
@@ -14,11 +15,15 @@ type TMTAgent struct {
 	cfg                         config.AgentConfig
 	env                         env.IEnvironment
 	serv                        ServerAPI
-	Name                        string
-	Pos                         env.Position
-	Energy                      int
-	tmt                         *model.TMTNetwork
-	ModelOutput                 []float64
+
+	Name     string
+	Pos      env.Position
+	Energy   int
+	Parent   uuid.UUID
+	Children []uuid.UUID
+
+	tmt         *model.TMTNetwork
+	ModelOutput []float64
 }
 
 func (tmta *TMTAgent) GetPos() env.Position {
@@ -35,6 +40,10 @@ func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {
 
 func (tmta *TMTAgent) GetEnergy() int {
 	return tmta.Energy
+}
+
+func (tmta *TMTAgent) GetName() string {
+	return tmta.Name
 }
 
 func (tmta *TMTAgent) AssignTMTModel() {
@@ -77,7 +86,7 @@ func (tmta *TMTAgent) PlayTurn() {
 	tmta.SignalMessagingComplete()
 }
 
-func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, serv ServerAPI, name string, initPos env.Position) *TMTAgent {
+func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.AgentConfig, env env.IEnvironment, serv ServerAPI, name string, initPos env.Position, parent uuid.UUID) *TMTAgent {
 	agent := &TMTAgent{
 		BaseAgent:   agent.CreateBaseAgent(funcs),
 		cfg:         cfg,
@@ -86,6 +95,8 @@ func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.Agen
 		Name:        name,
 		Pos:         initPos,
 		Energy:      cfg.StartingEnergy,
+		Parent:      parent,
+		Children:    make([]uuid.UUID, 0),
 		ModelOutput: make([]float64, 0),
 	}
 

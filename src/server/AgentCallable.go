@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+
 	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/env"
 )
@@ -27,4 +29,32 @@ func (serv *GameServer) MoveAgent(ag agent.ITMTAgent, target env.Position) bool 
 		return true
 	}
 	return false
+}
+
+func (serv *GameServer) RequestChild(parent agent.ITMTAgent) bool {
+	if parent.GetEnergy() <= serv.agCfg.ChildCost {
+		return false
+	}
+
+	pos := parent.GetPos()
+	childPos := pos
+	for _, adj := range pos.GetShuffledAdjacent() {
+		if !serv.IsObstructed(adj) {
+			childPos = adj
+			break
+		}
+	}
+	if childPos == pos {
+		return false
+	}
+
+	childName := fmt.Sprintf("%s %d", parent.GetName(), len(parent.GetChildren()))
+
+	child := agent.NewTMTAgent(serv, serv.agCfg, serv.Env, serv, childName, childPos, parent.GetID())
+	serv.AddAgent(child)
+
+	parent.ChangeEnergy(-serv.agCfg.ChildCost)
+	parent.AddChildID(child.GetID())
+
+	return true
 }

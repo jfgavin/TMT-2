@@ -2,6 +2,7 @@ package agent
 
 import (
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/agent"
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
@@ -17,4 +18,10 @@ type ITMTAgent interface {
 	ChangeEnergy(energyDelta int)
 
 	GetEnergy() int
+
+	GetName() string
+
+	AddChildID(uuid.UUID)
+
+	GetChildren() []uuid.UUID
 }

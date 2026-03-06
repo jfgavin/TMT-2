@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/env"
 )
@@ -82,7 +83,7 @@ func (serv *GameServer) IntroduceAgents() {
 	// Introduce agents, assigning random unique positions
 	for i := 0; i < serv.cfg.NumAgents; i++ {
 		pos := positions[i]
-		ga := agent.NewTMTAgent(serv, serv.agCfg, serv.Env, serv, fmt.Sprintf("Agent %d", i), pos)
+		ga := agent.NewTMTAgent(serv, serv.agCfg, serv.Env, serv, fmt.Sprintf("Agent %d", i), pos, uuid.Nil)
 		serv.AddAgent(ga)
 	}
 }

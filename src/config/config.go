@@ -16,6 +16,7 @@ type AgentConfig struct {
 	StartingEnergy int
 	VisualRange    int
 	ResourceYield  int
+	ChildCost      int
 	Neurons        NeuronConfig
 }
 
@@ -51,6 +52,7 @@ func NewConfig() Config {
 			StartingEnergy: 25,
 			VisualRange:    20,
 			ResourceYield:  3,
+			ChildCost:      5,
 			Neurons: NeuronConfig{
 				// All time constants in milliseconds / ms
 				TauRise:   2.0,  // Synaptic rise
