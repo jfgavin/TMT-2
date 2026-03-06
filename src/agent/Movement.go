@@ -6,12 +6,14 @@ import (
 
 // Very simple pathfinding algo, where valid step to reduce distance to target is chosen
 func (tmta *TMTAgent) GetGreedyPath(target env.Position) ([]env.Position, bool) {
-	pos := tmta.Pos
-	remainingDist := pos.ManhatDist(target)
+	current := tmta.Pos
+	if current == target {
+		return nil, false
+	}
 
-	path := make([]env.Position, 0)
+	remainingDist := current.ManhatDist(target)
 
-	current := pos
+	path := make([]env.Position, 0, remainingDist)
 	for current != target {
 		foundNextStep := false
 		for _, adj := range current.GetShuffledAdjacent() {
@@ -68,23 +70,31 @@ func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
 // Returns reachable position with highest utility (resources / dist + 1)
 func (tmta *TMTAgent) GetBestStep() (env.Position, bool) {
 	startPos := tmta.Pos
-
 	bestStep := startPos
 	bestUtility := 0.0
 
 	resourceMap := tmta.env.GetResources()
 	for _, pos := range tmta.VisiblePositions() {
 		resources, ok := resourceMap[pos]
-		if !ok {
+		if !ok || resources <= 0 {
 			continue
 		}
+
 		tileUtility := float64(resources) / float64(startPos.ManhatDist(pos)+1)
-		if tileUtility > bestUtility {
-			path, ok := tmta.GetGreedyPath(pos)
-			if ok {
-				bestStep = path[0]
-				bestUtility = tileUtility
-			}
+		if tileUtility <= bestUtility {
+			continue
+		}
+
+		if pos == startPos {
+			bestStep = startPos
+			bestUtility = tileUtility
+			continue
+		}
+
+		path, ok := tmta.GetGreedyPath(pos)
+		if ok {
+			bestStep = path[0]
+			bestUtility = tileUtility
 		}
 	}
 	return bestStep, bestUtility > 0.0
