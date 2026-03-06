@@ -56,7 +56,7 @@ func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
 
 // Random move to one of the unobstructed adjascent cells, if possible
 func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
-	adj := tmta.Pos.GetAdjacent()
+	adj := tmta.Pos.GetShuffledAdjacent()
 	gs := tmta.env.GridSize()
 
 	for _, pos := range adj {

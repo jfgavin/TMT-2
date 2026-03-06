@@ -25,13 +25,17 @@ class TMTGrid:
 
     def _load_textures(self):
         """Load required textures once."""
-        grave_path = ASSET_DIR / "grave.png"
-        width, height, _, data = dpg.load_image(str(grave_path))
+        tombstone_file = "tombstone.png"
+        memorial_file = "memorial.png"
 
-        with dpg.texture_registry():
-            dpg.add_static_texture(
-                width, height, data, tag="grave_img"
-            )
+        for file in (tombstone_file, memorial_file):
+            width, height, _, data = dpg.load_image(str(ASSET_DIR / file))
+
+            texture_tag = file.replace(".png", "_img")
+            with dpg.texture_registry():
+                dpg.add_static_texture(
+                    width, height, data, tag=texture_tag
+                )
 
     def _create_drawlist(self):
         parent_width = dpg.get_item_width(self.parent)
@@ -98,16 +102,26 @@ class TMTGrid:
     def _update_graves(self, graves, cell_w, cell_h):
         self._clear_items(self.graves)
 
-        for x, y, _ in graves:
+        for x, y, grave_info in graves:
             x0, y0 = x * cell_w, y * cell_h
             x1, y1 = x0 + cell_w, y0 + cell_h
 
-            grave_sprite = dpg.draw_image(
-                "grave_img",
-                (x0, y0),
-                (x1, y1),
-                parent=self.drawlist_tag,
-            )
+            grave_type = grave_info["Type"]
+            if grave_type == 0:
+                grave_sprite = dpg.draw_image(
+                    "tombstone_img",
+                    (x0, y0),
+                    (x1, y1),
+                    parent=self.drawlist_tag,
+                )
+            else:
+                grave_sprite = dpg.draw_image(
+                    "memorial_img",
+                    (x0, y0),
+                    (x1, y1),
+                    parent=self.drawlist_tag,
+                )
+
 
             self.graves.append(grave_sprite)
 

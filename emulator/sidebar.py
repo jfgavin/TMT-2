@@ -1,7 +1,9 @@
 import dearpygui.dearpygui as dpg
+import numpy as np
 
 class TMTSidebar:
-    def __init__(self, save_sim=None):
+    def __init__(self, save_sim=None, dt=0.1):
+        self.dt = dt
         with dpg.collapsing_header(label="Simulation State", tag="sim_state", default_open=True):
             dpg.add_text(f"Iteration: 0", tag="iter_text")
             dpg.add_text(f"Turn: 0", tag="turn_text")
@@ -12,6 +14,13 @@ class TMTSidebar:
         with dpg.collapsing_header(label="Agent", tag="agent_header", default_open=True, show=False):
             dpg.add_text("", tag="agent_name")
             dpg.add_text("", tag="agent_energy")
+        with dpg.plot(tag="model_plot", label="TMT Model Output", width=320, height=280, show=False):
+            dpg.add_plot_legend()
+
+            dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis")
+            dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")
+
+            dpg.add_line_series([0], [0], tag="tmt_line_series", label="Model Output", parent="y_axis")
 
     def update_state_metrics(self, state=None):
         if state is None:
@@ -59,12 +68,21 @@ class TMTSidebar:
 
         if uuid is None:
             dpg.configure_item("agent_header", show=False)
+            dpg.configure_item("model_plot", show=False)
             return
         elif agent is None:
             # Agent is dead if UUID selected but not in state
             dpg.add_text("DEAD", parent="agent_header")
         else:
             for key, value in agent.items():
-                dpg.add_text(f"{key}: {value}", parent="agent_header")
+                if key != "ModelOutput":
+                    dpg.add_text(f"{key}: {value}", parent="agent_header")
+
+            model_output = agent["ModelOutput"]
+            x_axis = np.arange(0, len(model_output) * self.dt, self.dt)
+            dpg.set_value("tmt_line_series", [x_axis, model_output])
+            dpg.fit_axis_data("x_axis")
+            dpg.fit_axis_data("y_axis")
 
         dpg.configure_item("agent_header", show=True)
+        dpg.configure_item("model_plot", show=True)

@@ -1,12 +1,21 @@
 package env
 
+type GraveType int
+
+const (
+	Tombstone GraveType = iota
+	Memorial
+)
+
 type Grave struct {
 	AgeRemaining int
+	Type         GraveType
 }
 
-func NewGrave(ageRem int) *Grave {
+func NewGrave(ageRem int, graveType GraveType) *Grave {
 	return &Grave{
 		AgeRemaining: ageRem,
+		Type:         graveType,
 	}
 }
 
@@ -22,8 +31,18 @@ func (env *Environment) GetGraves() map[Position]*Grave {
 	return env.graves
 }
 
-func (env *Environment) PlaceGrave(pos Position) {
-	env.graves[pos] = NewGrave(env.cfg.GraveLifespan)
+func (env *Environment) PlaceTombstone(pos Position) {
+	env.graves[pos] = NewGrave(
+		env.cfg.GraveLifespan,
+		Tombstone,
+	)
+}
+
+func (env *Environment) PlaceMemorial(pos Position) {
+	env.graves[pos] = NewGrave(
+		env.cfg.GraveLifespan,
+		Memorial,
+	)
 }
 
 func (env *Environment) TickGraves() {

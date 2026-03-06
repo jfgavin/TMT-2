@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
+	"github.com/jfgavin/TMT-2/src/config"
 )
 
 type Message struct {
@@ -17,6 +18,7 @@ type Message struct {
 
 type Metadata struct {
 	GridSize int
+	Config   config.Config
 }
 type GameState struct {
 	Iteration int
@@ -84,7 +86,7 @@ func StreamGameIteration(serv *GameServer, iteration, turn int) error {
 }
 
 // Websocket
-func (serv *GameServer) InitSocket(address string) error {
+func (serv *GameServer) InitSocket(address string, cfg config.Config) error {
 	fmt.Println("Connecting...")
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
@@ -96,6 +98,7 @@ func (serv *GameServer) InitSocket(address string) error {
 
 	metadata := Metadata{
 		GridSize: serv.Env.GridSize(),
+		Config:   cfg,
 	}
 
 	err = writeMessage(serv.Conn, "metadata", metadata)

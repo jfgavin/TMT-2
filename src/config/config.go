@@ -16,6 +16,15 @@ type AgentConfig struct {
 	StartingEnergy int
 	VisualRange    int
 	ResourceYield  int
+	Neurons        NeuronConfig
+}
+
+type NeuronConfig struct {
+	TauRise   float64
+	TauDecay  float64
+	TauMemb   float64
+	MsPerStep float64
+	Dt        float64
 }
 
 type EnvironmentConfig struct {
@@ -35,13 +44,21 @@ func NewConfig() Config {
 	return Config{
 		Serv: ServerConfig{
 			Iterations: 2,
-			Turns:      50,
+			Turns:      100,
 			NumAgents:  4,
 		},
 		Agent: AgentConfig{
 			StartingEnergy: 25,
 			VisualRange:    20,
 			ResourceYield:  3,
+			Neurons: NeuronConfig{
+				// All time constants in milliseconds / ms
+				TauRise:   2.0,  // Synaptic rise
+				TauDecay:  20.0, // Synaptic decay - must be slower than rise
+				TauMemb:   20.0, // Synapse membrane leak time constant
+				MsPerStep: 10.0, // Milliseconds simulated per simulation turn
+				Dt:        0.1,  // Neuron model timestep
+			},
 		},
 		Env: EnvironmentConfig{
 			GridSize:      16,
