@@ -3,14 +3,10 @@ package server
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/env"
 )
-
-// Functions explicitly callable by the agent via the ServerAPI will be placed here
-func (serv *GameServer) GetEliminationCount() int {
-	return serv.elims
-}
 
 func (serv *GameServer) RequestSacrifice(sacAg agent.ITMTAgent) {
 	serv.sacrificeRequests = append(serv.sacrificeRequests, sacAg)
@@ -31,6 +27,17 @@ func (serv *GameServer) MoveAgent(ag agent.ITMTAgent, target env.Position) bool 
 	return false
 }
 
+func (serv *GameServer) GetChildrenIDs(parent agent.ITMTAgent) []uuid.UUID {
+	parentID := parent.GetID()
+	childrenIDs := make([]uuid.UUID, 0)
+	for uuid, ag := range serv.GetAgentMap() {
+		if ag.GetParent() == parentID {
+			childrenIDs = append(childrenIDs, uuid)
+		}
+	}
+	return childrenIDs
+}
+
 func (serv *GameServer) RequestChild(parent agent.ITMTAgent) bool {
 	if parent.GetEnergy() <= serv.agCfg.ChildCost {
 		return false
@@ -48,13 +55,12 @@ func (serv *GameServer) RequestChild(parent agent.ITMTAgent) bool {
 		return false
 	}
 
-	childName := fmt.Sprintf("%s %d", parent.GetName(), len(parent.GetChildren()))
+	childName := fmt.Sprintf("%s %d", parent.GetName(), len(serv.GetChildrenIDs(parent)))
 
 	child := agent.NewTMTAgent(serv, serv.agCfg, serv.Env, serv, childName, childPos, parent.GetID())
 	serv.AddAgent(child)
 
 	parent.ChangeEnergy(-serv.agCfg.ChildCost)
-	parent.AddChildID(child.GetID())
 
 	return true
 }

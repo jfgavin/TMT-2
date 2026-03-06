@@ -5,7 +5,7 @@ import (
 )
 
 type ServerAPI interface {
-	GetEliminationCount() int
+	GetElimCount() int
 	RequestSacrifice(ITMTAgent)
 	IsObstructed(env.Position) bool
 	MoveAgent(ITMTAgent, env.Position) bool

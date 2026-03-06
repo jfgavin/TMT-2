@@ -16,11 +16,10 @@ type TMTAgent struct {
 	env                         env.IEnvironment
 	serv                        ServerAPI
 
-	Name     string
-	Pos      env.Position
-	Energy   int
-	Parent   uuid.UUID
-	Children []uuid.UUID
+	Name   string
+	Pos    env.Position
+	Energy int
+	Parent uuid.UUID
 
 	tmt         *model.TMTNetwork
 	ModelOutput []float64
@@ -50,7 +49,7 @@ func (tmta *TMTAgent) AssignTMTModel() {
 	net := model.NewTMTNetwork(tmta.cfg.Neurons)
 
 	elimCount := func() float64 {
-		return float64(tmta.serv.GetEliminationCount())
+		return float64(tmta.serv.GetElimCount())
 	}
 
 	net.RegisterInput(model.Eliminations, elimCount)
@@ -96,7 +95,6 @@ func NewTMTAgent(funcs agent.IExposedServerFunctions[ITMTAgent], cfg config.Agen
 		Pos:         initPos,
 		Energy:      cfg.StartingEnergy,
 		Parent:      parent,
-		Children:    make([]uuid.UUID, 0),
 		ModelOutput: make([]float64, 0),
 	}
 

@@ -21,7 +21,5 @@ type ITMTAgent interface {
 
 	GetName() string
 
-	AddChildID(uuid.UUID)
-
-	GetChildren() []uuid.UUID
+	GetParent() uuid.UUID
 }
