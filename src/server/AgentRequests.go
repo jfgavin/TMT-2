@@ -9,7 +9,7 @@ import (
 )
 
 func (serv *GameServer) RequestSacrifice(sacAg agent.ITMTAgent) {
-	serv.sacrificeRequests = append(serv.sacrificeRequests, sacAg)
+	serv.sacrificeReqs = append(serv.sacrificeReqs, sacAg.GetID())
 }
 
 func (serv *GameServer) IsObstructed(pos env.Position) bool {

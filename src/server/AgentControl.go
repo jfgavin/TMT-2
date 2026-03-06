@@ -35,34 +35,38 @@ func (serv *GameServer) UpdateObstructions() {
 }
 
 func (serv *GameServer) HandleAgentMortality() {
-	serv.elims = 0
+	// Clear old death records
+	serv.deathRecords = nil
+
+	// Tick over all pre-existing graves
+	serv.Env.TickGraves()
+
+	// Drain and eliminate agents with no energy
 	for _, ag := range serv.GetAgentMap() {
-		// Drain agent, then kill if no energy
 		ag.ChangeEnergy(-1)
 		if ag.GetEnergy() < 0 {
-			serv.KillAgent(ag)
+			serv.EliminateAgent(ag)
 		}
 	}
 
-	// Sacrifice agents which requested it
-	for _, ag := range serv.sacrificeRequests {
-		serv.SacrificeAgent(ag)
+	// Sacrifice agents which requested it this turn
+	for _, id := range serv.sacrificeReqs {
+		if ag, ok := serv.GetAgentMap()[id]; ok {
+			serv.SacrificeAgent(ag)
+		}
 	}
-
-	// Clear sacrifice buffer
-	serv.sacrificeRequests = nil
 }
 
-func (serv *GameServer) KillAgent(ag agent.ITMTAgent) {
+func (serv *GameServer) EliminateAgent(ag agent.ITMTAgent) {
+	serv.AddDeathRecord(ag, Elimination)
 	serv.Env.PlaceTombstone(ag.GetPos())
 	serv.RemoveAgent(ag)
-	serv.elims++
 }
 
 func (serv *GameServer) SacrificeAgent(ag agent.ITMTAgent) {
+	serv.AddDeathRecord(ag, Sacrifice)
 	serv.Env.PlaceMemorial(ag.GetPos())
 	serv.RemoveAgent(ag)
-	serv.elims++
 }
 
 func (serv *GameServer) IntroduceAgents() {

@@ -75,12 +75,12 @@ func writeMessage(conn net.Conn, tp string, v any) error {
 	return err
 }
 
-func StreamGameIteration(serv *GameServer, iteration, turn int) error {
+func (serv *GameServer) StreamGameIteration() error {
 	if serv.Conn == nil {
 		return fmt.Errorf("no connection")
 	}
 
-	state := BuildGameState(serv, iteration, turn)
+	state := BuildGameState(serv, serv.GetIterations(), serv.GetTurns())
 	err := writeMessage(serv.Conn, "state", state)
 	return err
 }

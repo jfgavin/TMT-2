@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MattSScott/basePlatformSOMAS/v2/pkg/server"
+	"github.com/google/uuid"
 	"github.com/jfgavin/TMT-2/src/agent"
 	"github.com/jfgavin/TMT-2/src/config"
 	"github.com/jfgavin/TMT-2/src/env"
@@ -14,13 +15,14 @@ import (
 
 type GameServer struct {
 	*server.BaseServer[agent.ITMTAgent]
-	cfg               config.ServerConfig
-	agCfg             config.AgentConfig
-	Env               *env.Environment
-	Conn              net.Conn
-	obstructions      map[env.Position]struct{}
-	elims             int
-	sacrificeRequests []agent.ITMTAgent
+	cfg          config.ServerConfig
+	agCfg        config.AgentConfig
+	Env          *env.Environment
+	Conn         net.Conn
+	obstructions map[env.Position]struct{}
+
+	sacrificeReqs []uuid.UUID
+	deathRecords  []DeathRecord
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
@@ -28,8 +30,7 @@ func (serv *GameServer) RunTurn(i, j int) {
 	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()
 	}
-	StreamGameIteration(serv, i, j)
-	serv.Env.TickGraves()
+	serv.StreamGameIteration()
 	serv.HandleAgentMortality()
 }
 
@@ -48,13 +49,12 @@ func (serv *GameServer) Start() {
 
 func NewGameServer(cfg config.Config) *GameServer {
 	serv := &GameServer{
-		BaseServer:        server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
-		Env:               env.NewEnvironment(cfg.Env),
-		cfg:               cfg.Serv,
-		agCfg:             cfg.Agent, // Stored for spawning more agents later
-		obstructions:      make(map[env.Position]struct{}),
-		elims:             0,
-		sacrificeRequests: make([]agent.ITMTAgent, 0),
+		BaseServer:   server.CreateBaseServer[agent.ITMTAgent](cfg.Serv.Iterations, cfg.Serv.Turns, 10*time.Millisecond, 100), // embed BaseServer: maxTimeout = 10ms, maxThreads = 100
+		Env:          env.NewEnvironment(cfg.Env),
+		cfg:          cfg.Serv,
+		agCfg:        cfg.Agent, // Stored for spawning more agents later
+		obstructions: make(map[env.Position]struct{}),
+		deathRecords: make([]DeathRecord, 0),
 	}
 
 	// Add agents
