@@ -21,20 +21,6 @@ func (pos Position) IsBounded(upperBound int) bool {
 	return pos.X >= 0 && pos.X < upperBound && pos.Y >= 0 && pos.Y < upperBound
 }
 
-func (pos Position) Bound(upperBound int) {
-	if pos.X < 0 {
-		pos.X = 0
-	} else if pos.X > upperBound {
-		pos.X = upperBound
-	}
-
-	if pos.Y < 0 {
-		pos.Y = 0
-	} else if pos.Y > upperBound {
-		pos.Y = upperBound
-	}
-}
-
 func (pos Position) GetShuffledAdjacent() [4]Position {
 	adj := [4]Position{
 		{pos.X + 1, pos.Y},
@@ -43,47 +29,9 @@ func (pos Position) GetShuffledAdjacent() [4]Position {
 		{pos.X, pos.Y - 1},
 	}
 
-	// Shuffle it so that pathfinding varies on each run
 	rand.Shuffle(len(adj), func(i, j int) {
 		adj[i], adj[j] = adj[j], adj[i]
 	})
 
 	return adj
-}
-
-// Greedily get next position which reduces Manhattan distance to target
-func (pos Position) GreedyNextStep(target Position) Position {
-	nextStep := pos
-	remDist := pos.ManhatDist(target)
-	bestRemDist := remDist
-
-	for _, adj := range pos.GetShuffledAdjacent() {
-		dist := adj.ManhatDist(target)
-		if dist < bestRemDist {
-			nextStep = adj
-			bestRemDist = dist
-		}
-	}
-	return nextStep
-}
-
-// Concatenate greedy steps to make a path to target
-func (pos Position) GreedyPath(target Position) []Position {
-	dist := pos.ManhatDist(target)
-	path := make([]Position, 0, dist)
-
-	current := pos
-	path = append(path, current)
-
-	for current != target {
-		current = current.GreedyNextStep(target)
-		path = append(path, current)
-	}
-
-	return path
-}
-
-func (pos Position) IsObstructed(obstructions map[Position]struct{}) bool {
-	_, blocked := obstructions[pos]
-	return blocked
 }

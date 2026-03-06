@@ -4,11 +4,34 @@ import (
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
-// Update position, and broadcast this new obstruction to all other agents
-func (tmta *TMTAgent) SetPosAndBroadcast(pos env.Position) {
-	pos.Bound(tmta.env.GridSize())
-	tmta.Pos = pos
-	tmta.BroadcastPosition()
+// Very simple pathfinding algo, where valid step to reduce distance to target is chosen
+func (tmta *TMTAgent) GetGreedyPath(target env.Position) ([]env.Position, bool) {
+	current := tmta.Pos
+	if current == target {
+		return nil, false
+	}
+
+	remainingDist := current.ManhatDist(target)
+
+	path := make([]env.Position, 0, remainingDist)
+	for current != target {
+		foundNextStep := false
+		for _, adj := range current.GetShuffledAdjacent() {
+			dist := adj.ManhatDist(target)
+			if dist < remainingDist && !tmta.serv.IsObstructed(adj) {
+				current = adj
+				remainingDist = dist
+				foundNextStep = true
+				break
+			}
+		}
+		if !foundNextStep {
+			return path, false
+		}
+		path = append(path, current)
+	}
+
+	return path, true
 }
 
 // Returns all positions with Manhattan distance <= agent's visual range
@@ -34,76 +57,57 @@ func (tmta *TMTAgent) VisiblePositions() []env.Position {
 	return out
 }
 
-// Checks if target is reachable, then returns next step if true
-func (tmta *TMTAgent) IsReachable(target env.Position) (env.Position, bool) {
-	// If getting there and harvesting is more energy than agent has, then false
-	if dist := tmta.Pos.ManhatDist(target); dist+1 > tmta.Energy {
-		return env.Position{}, false
-	}
-
-	gs := tmta.env.GridSize()
-	path := tmta.Pos.GreedyPath(target)
-
-	// Walk path and check unobstructed
-	for _, step := range path {
-		if step.IsObstructed(tmta.obstructions) || !step.IsBounded(gs) {
-			return env.Position{}, false
-		}
-	}
-
-	return path[min(1, len(path))], true
-}
-
 // Random move to one of the unobstructed adjascent cells, if possible
 func (tmta *TMTAgent) GetRandomStep() (env.Position, bool) {
-	adj := tmta.Pos.GetShuffledAdjacent()
-	gs := tmta.env.GridSize()
-
-	for _, pos := range adj {
-		if !pos.IsObstructed(tmta.obstructions) && pos.IsBounded(gs) {
-			return pos, true
+	for _, adj := range tmta.Pos.GetShuffledAdjacent() {
+		if !tmta.serv.IsObstructed(adj) {
+			return adj, true
 		}
 	}
-
 	return tmta.Pos, false
 }
 
 // Returns reachable position with highest utility (resources / dist + 1)
 func (tmta *TMTAgent) GetBestStep() (env.Position, bool) {
 	startPos := tmta.Pos
-
 	bestStep := startPos
 	bestUtility := 0.0
 
-	resources := tmta.env.GetResources()
-	for pos, amt := range resources {
-		dist := startPos.ManhatDist(pos)
-		if dist > tmta.cfg.VisualRange {
+	resourceMap := tmta.env.GetResources()
+	for _, pos := range tmta.VisiblePositions() {
+		resources, ok := resourceMap[pos]
+		if !ok || resources <= 0 {
 			continue
 		}
-		tileUtility := float64(amt) / float64(dist+1)
-		if tileUtility > bestUtility {
-			if step, ok := tmta.IsReachable(pos); ok {
-				bestStep = step
-				bestUtility = tileUtility
-			}
+
+		tileUtility := float64(resources) / float64(startPos.ManhatDist(pos)+1)
+		if tileUtility <= bestUtility {
+			continue
 		}
 
+		if pos == startPos {
+			bestStep = startPos
+			bestUtility = tileUtility
+			continue
+		}
+
+		path, ok := tmta.GetGreedyPath(pos)
+		if ok {
+			bestStep = path[0]
+			bestUtility = tileUtility
+		}
 	}
-	return bestStep, bestUtility > 0
+	return bestStep, bestUtility > 0.0
 }
 
-// Try to move to resources, otherwise explore, otherwise stand still
-func (tmta *TMTAgent) Move() {
+func (tmta *TMTAgent) Move() bool {
 	step := tmta.Pos
 
 	if bestStep, ok := tmta.GetBestStep(); ok {
 		step = bestStep
 	} else if randStep, ok := tmta.GetRandomStep(); ok {
 		step = randStep
-	} else {
-		return
 	}
 
-	tmta.SetPosAndBroadcast(step)
+	return tmta.serv.MoveAgent(tmta, step)
 }

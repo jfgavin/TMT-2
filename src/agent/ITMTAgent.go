@@ -8,18 +8,13 @@ import (
 type ITMTAgent interface {
 	agent.IAgent[ITMTAgent]
 
-	BroadcastPosition()
-
 	PlayTurn()
 
 	GetPos() env.Position
 
+	SetPos(env.Position)
+
 	ChangeEnergy(energyDelta int)
 
 	GetEnergy() int
-
-	ClearObstructions()
-
-	NewObstructionMessage(pos env.Position) *ObstructionMessage
-	HandleObstructionMessage(*ObstructionMessage)
 }

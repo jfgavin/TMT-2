@@ -18,12 +18,13 @@ type GameServer struct {
 	agCfg             config.AgentConfig
 	Env               *env.Environment
 	Conn              net.Conn
+	obstructions      map[env.Position]struct{}
 	elims             int
 	sacrificeRequests []agent.ITMTAgent
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
-	serv.EstablishInitialObstructions()
+	serv.UpdateObstructions()
 	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()
 	}
@@ -51,6 +52,7 @@ func NewGameServer(cfg config.Config) *GameServer {
 		Env:               env.NewEnvironment(cfg.Env),
 		cfg:               cfg.Serv,
 		agCfg:             cfg.Agent, // Stored for spawning more agents later
+		obstructions:      make(map[env.Position]struct{}),
 		elims:             0,
 		sacrificeRequests: make([]agent.ITMTAgent, 0),
 	}
