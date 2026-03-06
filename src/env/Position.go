@@ -29,7 +29,6 @@ func (pos Position) GetShuffledAdjacent() [4]Position {
 		{pos.X, pos.Y - 1},
 	}
 
-	// Shuffle it so that pathfinding varies on each run
 	rand.Shuffle(len(adj), func(i, j int) {
 		adj[i], adj[j] = adj[j], adj[i]
 	})

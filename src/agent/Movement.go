@@ -4,6 +4,7 @@ import (
 	"github.com/jfgavin/TMT-2/src/env"
 )
 
+// Very simple pathfinding algo, where valid step to reduce distance to target is chosen
 func (tmta *TMTAgent) GetGreedyPath(target env.Position) ([]env.Position, bool) {
 	pos := tmta.Pos
 	remainingDist := pos.ManhatDist(target)
@@ -19,6 +20,7 @@ func (tmta *TMTAgent) GetGreedyPath(target env.Position) ([]env.Position, bool) 
 				current = adj
 				remainingDist = dist
 				foundNextStep = true
+				break
 			}
 		}
 		if !foundNextStep {
