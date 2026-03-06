@@ -100,7 +100,6 @@ func (tmta *TMTAgent) GetBestStep() (env.Position, bool) {
 	return bestStep, bestUtility > 0.0
 }
 
-// Try to move to resources, otherwise explore, otherwise stand still
 func (tmta *TMTAgent) Move() bool {
 	step := tmta.Pos
 

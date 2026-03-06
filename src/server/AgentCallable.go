@@ -21,7 +21,7 @@ func (serv *GameServer) IsObstructed(pos env.Position) bool {
 
 func (serv *GameServer) MoveAgent(ag agent.ITMTAgent, target env.Position) bool {
 	agPos := ag.GetPos()
-	if agPos.ManhatDist(target) == 1 {
+	if agPos.ManhatDist(target) == 1 && !serv.IsObstructed(target) {
 		ag.SetPos(target)
 		serv.obstructions[target] = struct{}{}
 		return true

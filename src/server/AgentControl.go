@@ -23,7 +23,7 @@ func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
 	return agents
 }
 
-func (serv *GameServer) EstablishInitialObstructions() {
+func (serv *GameServer) UpdateObstructions() {
 	// Clear stored obstructions
 	serv.obstructions = make(map[env.Position]struct{})
 

@@ -24,7 +24,7 @@ type GameServer struct {
 }
 
 func (serv *GameServer) RunTurn(i, j int) {
-	serv.EstablishInitialObstructions()
+	serv.UpdateObstructions()
 	for _, ag := range serv.GetShuffledAgents() {
 		ag.PlayTurn()
 	}
