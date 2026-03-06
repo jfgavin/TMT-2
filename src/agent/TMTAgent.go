@@ -16,7 +16,6 @@ type TMTAgent struct {
 	serv                        ServerAPI
 	Name                        string
 	Pos                         env.Position
-	obstructions                map[env.Position]struct{}
 	Energy                      int
 	tmt                         *model.TMTNetwork
 	ModelOutput                 []float64
@@ -26,21 +25,16 @@ func (tmta *TMTAgent) GetPos() env.Position {
 	return tmta.Pos
 }
 
+func (tmta *TMTAgent) SetPos(pos env.Position) {
+	tmta.Pos = pos
+}
+
 func (tmta *TMTAgent) ChangeEnergy(energyDelta int) {
 	tmta.Energy += energyDelta
 }
 
 func (tmta *TMTAgent) GetEnergy() int {
 	return tmta.Energy
-}
-
-func (tmta *TMTAgent) ClearObstructions() {
-	tmta.obstructions = make(map[env.Position]struct{})
-}
-
-func (tmta *TMTAgent) BroadcastPosition() {
-	msg := tmta.NewObstructionMessage(tmta.Pos)
-	tmta.BroadcastSynchronousMessage(msg)
 }
 
 func (tmta *TMTAgent) AssignTMTModel() {

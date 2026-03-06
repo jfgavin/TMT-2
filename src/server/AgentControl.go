@@ -24,12 +24,12 @@ func (serv *GameServer) GetShuffledAgents() []agent.ITMTAgent {
 }
 
 func (serv *GameServer) EstablishInitialObstructions() {
-	// Clear agent stored obstructions, then establish current positions
+	// Clear stored obstructions
+	serv.obstructions = make(map[env.Position]struct{})
+
+	// Re-establish current obstructions
 	for _, ag := range serv.GetAgentMap() {
-		ag.ClearObstructions()
-	}
-	for _, ag := range serv.GetAgentMap() {
-		ag.BroadcastPosition()
+		serv.obstructions[ag.GetPos()] = struct{}{}
 	}
 }
 
